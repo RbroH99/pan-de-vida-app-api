@@ -6,6 +6,7 @@ services:
       context: .
       args:
         - DEV=true
+        - DOCKER_BUILDKIT=1
     ports:
       - 8002:8000
     volumes:
