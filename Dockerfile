@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED=1
 
 #Copy requirement files
 COPY ./requirements.txt /tmp/requirements.txt
-COPY ./requirements.txt /tmp/requirements.dev.txt
+COPY ./requirements.dev.txt /tmp/requirements.dev.txt
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
