@@ -3,6 +3,7 @@ Models for the pandevida app API.
 """
 from django.db import models
 
+
 class MedClass(models.Model):
     """Medicine classification model."""
     name = models.CharField(max_length=60,
