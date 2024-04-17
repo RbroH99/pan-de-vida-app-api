@@ -22,6 +22,15 @@ services:
     depends_on:
       - db
 
+  rabbitmq:
+    image: rabbitmq:3.8.2-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=rbravoh99
+      - RABBITMQ_DEFAULT_PASS=changeme
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
   db:
     image: postgres:16.2-alpine3.19
 #     restart: always

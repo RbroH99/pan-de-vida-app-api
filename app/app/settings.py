@@ -54,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.RabbitMQConsumerMiddleware',
 ]
 
 ROOT_URLCONF = 'app.urls'
@@ -147,3 +148,5 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+RABBITMQ_URL = 'amqp://rbravoh99:changeme@rabbitmq:5672/'

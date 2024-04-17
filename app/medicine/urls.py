@@ -9,6 +9,7 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register('medclass', views.MedClassViewSet)
+router.register('medicinepresentation', views.MedicinePresentationViewSet)
 
 
 app_name = 'medicine'

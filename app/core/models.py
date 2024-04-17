@@ -9,22 +9,25 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 
+
 class UserManager(BaseUserManager):
     """Manager for the users."""
 
-    def create_user(self, email, **extra_fields):
+    def create_user(self, id, email, **extra_fields):
         """Create, save and return a new user."""
         if not email:
             raise ValueError('User must have an email!.')
+        if not id:
+            raise ValueError('User must have an id!.')
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user = self.model(id=id, email=email, **extra_fields)
         user.save(using=self._db)
 
         return user
 
-    def create_superuser(self, email, password):
+    def create_superuser(self, id, email):
         """Create superuser with given details."""
-        user = self.model(email=email)
+        user = self.model(id=id, email=email)
 
         user.is_superuser = True
         user.is_staff = True
@@ -35,6 +38,7 @@ class UserManager(BaseUserManager):
 
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """User in the API"""
+    id = models.IntegerField(primary_key=True)
     email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -50,6 +54,17 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
 class MedClass(models.Model):
     """Medicine classification model."""
+    name = models.CharField(max_length=60,
+                            unique=True,
+                            null=False,
+                            blank=False)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class MedicinePresentation(models.Model):
+    """Medicine presentation model."""
     name = models.CharField(max_length=60,
                             unique=True,
                             null=False,

@@ -68,6 +68,7 @@ class PrivateMedicineClassificationAPITests(TestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user(
+            id=9999,
             email="user2@example.com",
             )
         self.client = APIClient()

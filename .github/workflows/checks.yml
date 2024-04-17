@@ -18,6 +18,16 @@ jobs:
       - name: Create Docker volume
         run: docker volume create --name=pandevida-postgres-data
       - name: Test
-        run: docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py test"
+        run: |
+          docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py test" &
+          echo "DJANGO_SERVER_PID=$!" >> $GITHUB_ENV
+          sleep 60
+      - name: Terminate Django server
+        run: |
+          kill -SIGINT $DJANGO_SERVER_PID
+          sleep 5
+          kill -SIGTERM $DJANGO_SERVER_PID
+          sleep 2
+          kill -SIGKILL $DJANGO_SERVER_PID
       - name: Lint
         run: docker-compose run --rm app sh -c "flake8"

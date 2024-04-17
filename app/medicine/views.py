@@ -15,12 +15,21 @@ from medicine import serializers
 
 from core. models import (
     MedClass,
+    MedicinePresentation
 )
 
+class BasicNameOnlyPrivateModel(viewsets.ModelViewSet):
+    """Basic view Authorization for name-only models."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
-class MedClassViewSet(viewsets.ModelViewSet):
+
+class MedClassViewSet(BasicNameOnlyPrivateModel):
     """Manage medicine classifications."""
     serializer_class = serializers.MedClassSerializer
     queryset = MedClass.objects.all()
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+
+
+class MedicinePresentationViewSet(BasicNameOnlyPrivateModel):
+    serializer_class = serializers.MedicinePresentationSerializer
+    queryset = MedicinePresentation.objects.all()
