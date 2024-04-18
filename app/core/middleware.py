@@ -6,14 +6,22 @@ from django.utils.deprecation import MiddlewareMixin
 from .rabbitmq import secure_start_consuming
 
 import threading
-
 import asyncio
+import os
+
+
+#Verify if enviroment is gitHub action
+CI_ENV = os.environ.get('CI_ENV')
 
 
 class RabbitMQConsumerMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response
-        self.start_consumer_thread()
+        #Verify env before starting consumer.
+        if CI_ENV != "true":
+            self.start_consumer_thread()
+        else:
+            print("CI_ENV is set to true, RabbitMQ consumer will not run.")
 
     def start_consumer_thread(self):
         consumer_thread = threading.Thread(target=self.run_consumer)

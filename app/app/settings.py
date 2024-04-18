@@ -56,16 +56,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.RabbitMQConsumerMiddleware',
 ]
-
-#Verify if enviroment is gitHub action to not run rabbitmq middleware.
-CI_ENV = os.environ.get('CI_ENV')
-
-if CI_ENV != "true":
-    MIDDLEWARE.append('core.middleware.RabbitMQConsumerMiddleware')
-else:
-    logging.info("CI_ENV is set to true, RabbitMQConsumerMiddleware not added.")
-#--------------------------------------------------------------------
 
 ROOT_URLCONF = 'app.urls'
 
