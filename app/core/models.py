@@ -9,6 +9,8 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 
+from django.utils.translation import gettext_lazy as _
+
 
 class UserManager(BaseUserManager):
     """Manager for the users."""
@@ -72,3 +74,41 @@ class MedicinePresentation(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Medicine(models.Model):
+    """Medicine object in db."""
+    measurement_choices = (
+        ('mL', _('Milliliters')),
+        ('oz', _('Ounce')),
+        ('pt', _('Pint')),
+        ('L', _('Liter')),
+        ('mg', _('Milligram')),
+        ('g', _('Gram')),
+        ('lb', _('Pound')),
+        ('-', _('Not Set'))
+    )
+
+    name = models.CharField(max_length=60,
+                            blank=False,
+                            null=False
+                            )
+    classification = models.ForeignKey(MedClass,
+                                       null=True,
+                                       blank=True,
+                                       on_delete=models.SET_NULL
+                                       )
+    presentation = models.ForeignKey(MedicinePresentation,
+                                     null=True,
+                                     blank=True,
+                                     on_delete=models.SET_NULL
+                                     )
+    batch = models.CharField(max_length=30,
+                             blank=True,
+                             null=True
+                             )
+    measurement = models.CharField(max_length=2,
+                                   default='-')
+
+    def __str__(self) -> str:
+        return f'Name: {self.name}, Batch: {self.batch}'
