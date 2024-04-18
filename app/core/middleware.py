@@ -9,6 +9,7 @@ import threading
 
 import asyncio
 
+
 class RabbitMQConsumerMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response
@@ -22,4 +23,3 @@ class RabbitMQConsumerMiddleware(MiddlewareMixin):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(secure_start_consuming())
-        loop.run_forever()

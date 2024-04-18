@@ -8,6 +8,7 @@ from core.models import (
     MedicinePresentation,
 )
 
+
 class BasicNameOnlyModelSerializer(serializers.ModelSerializer):
     """Serializer Meta for models that has only name attr."""
 

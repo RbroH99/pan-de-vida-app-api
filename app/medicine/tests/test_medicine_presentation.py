@@ -34,7 +34,7 @@ class PublicMedicinePresentationAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_anonymous_medicinepresentation_get_error(self):
-        """Test unauthenticated getting medicinepresentation results in error."""
+        """Test unauthenticated getting medicinepresentation forbidden."""
         medicinepresentation = \
             MedicinePresentation.objects.create(name="Analgésico")
 
@@ -45,7 +45,7 @@ class PublicMedicinePresentationAPITests(TestCase):
         self.assertNotIn(medicinepresentation, res.data)
 
     def test_anonymous_medicinepresentation_post_error(self):
-        """Test unauthenticated post to medicinepresentation results in error."""
+        """Test unauthenticated post to medicinepresentation forbidden."""
         payload = {"name": "Antiestamínico"}
         res = self.client.post(MEDPRES_URL, payload, format='json')
 

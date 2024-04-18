@@ -12,6 +12,7 @@ from core.models import (
 
 UserProfile = get_user_model()
 
+
 class ModelTests(TestCase):
     """Test models."""
 
@@ -22,7 +23,6 @@ class ModelTests(TestCase):
         user = UserProfile.objects.create_user(id=id, email=email)
 
         self.assertEqual(str(user), email)
-
 
     def test_create_medclass(self):
         """Test creating medclass"""
