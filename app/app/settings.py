@@ -54,8 +54,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.middleware.RabbitMQConsumerMiddleware',
 ]
+
+if os.environ.get('CI_ENV') != 'true':
+    MIDDLEWARE.append('core.middleware.RabbitMQConsumerMiddleware')
 
 ROOT_URLCONF = 'app.urls'
 
