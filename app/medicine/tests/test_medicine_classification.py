@@ -78,7 +78,7 @@ class PrivateMedicineClassificationAPITests(TestCase):
         """Test authenticated medclass-list success."""
         res = self.client.get(MEDCLASS_URL)
 
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_medclass_get(self):
         """Test authenticated getting medclass detail success."""
