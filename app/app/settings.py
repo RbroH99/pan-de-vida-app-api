@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 
+import logging
+
 from datetime import timedelta
 
 from pathlib import Path
@@ -62,7 +64,7 @@ CI_ENV = os.environ.get('CI_ENV')
 if CI_ENV != "true":
     MIDDLEWARE.append('core.middleware.RabbitMQConsumerMiddleware')
 else:
-    print("CI_ENV is set to true, RabbitMQConsumerMiddleware not added.")
+    logging.info("CI_ENV is set to true, RabbitMQConsumerMiddleware not added.")
 #--------------------------------------------------------------------
 
 ROOT_URLCONF = 'app.urls'
