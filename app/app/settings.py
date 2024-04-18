@@ -56,8 +56,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-if os.environ.get('CI_ENV') != 'true':
+#Verify if enviroment is gitHub action to not run rabbitmq middleware.
+CI_ENV = os.environ.get('CI_ENV')
+
+if CI_ENV != "true":
     MIDDLEWARE.append('core.middleware.RabbitMQConsumerMiddleware')
+#--------------------------------------------------------------------
 
 ROOT_URLCONF = 'app.urls'
 
