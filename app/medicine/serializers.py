@@ -6,6 +6,7 @@ from rest_framework import serializers
 from core.models import (
     MedClass,
     MedicinePresentation,
+    Medicine
 )
 
 
@@ -18,7 +19,7 @@ class BasicNameOnlyModelSerializer(serializers.ModelSerializer):
 
 
 class MedClassSerializer(BasicNameOnlyModelSerializer):
-    """Serializer fo the medclass endpoints."""
+    """Serializer for the medclass endpoints."""
 
     class Meta(BasicNameOnlyModelSerializer.Meta):
         model = MedClass
@@ -29,3 +30,22 @@ class MedicinePresentationSerializer(serializers.ModelSerializer):
 
     class Meta(BasicNameOnlyModelSerializer.Meta):
         model = MedicinePresentation
+
+
+class MedicineSerializer(BasicNameOnlyModelSerializer):
+    """Serializer for medicine endpoints."""
+    presentation = MedicinePresentationSerializer(many=False, required=False)
+
+    class Meta(BasicNameOnlyModelSerializer.Meta):
+        model = Medicine
+        fields = BasicNameOnlyModelSerializer.Meta.fields + \
+            ['presentation', 'measurement', 'measurement_units']
+
+
+class MedicineDetailSerializer(MedicineSerializer):
+    """Detail endpoint for medicine instances."""
+    classification = MedClassSerializer(many=False, required=False)
+
+    class Meta(MedicineSerializer.Meta):
+        fields = MedicineSerializer.Meta.fields + \
+              ['classification', 'batch']

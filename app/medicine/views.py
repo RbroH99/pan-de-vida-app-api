@@ -12,22 +12,36 @@ from medicine import serializers
 
 from core. models import (
     MedClass,
-    MedicinePresentation
+    MedicinePresentation,
+    Medicine
 )
 
 
-class BasicNameOnlyPrivateModel(viewsets.ModelViewSet):
+class BaseNameOnlyPrivateModel(viewsets.ModelViewSet):
     """Basic view Authorization for name-only models."""
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
 
-class MedClassViewSet(BasicNameOnlyPrivateModel):
+class MedClassViewSet(BaseNameOnlyPrivateModel):
     """Manage medicine classifications."""
     serializer_class = serializers.MedClassSerializer
     queryset = MedClass.objects.all()
 
 
-class MedicinePresentationViewSet(BasicNameOnlyPrivateModel):
+class MedicinePresentationViewSet(BaseNameOnlyPrivateModel):
     serializer_class = serializers.MedicinePresentationSerializer
     queryset = MedicinePresentation.objects.all()
+
+
+class MedicineViewSet(BaseNameOnlyPrivateModel):
+    """Manage medicine in the system."""
+    serializer_class = serializers.MedicineDetailSerializer
+    queryset = Medicine.objects.all()
+
+    def get_serializer_class(self):
+        """Return the serializer class for request."""
+        if self.action == 'list':
+            return serializers.MedicineSerializer
+
+        return self.serializer_class

@@ -103,12 +103,16 @@ class Medicine(models.Model):
                                      blank=True,
                                      on_delete=models.SET_NULL
                                      )
-    batch = models.CharField(max_length=30,
-                             blank=True,
-                             null=True
-                             )
-    measurement = models.CharField(max_length=2,
-                                   default='-')
+    batch = models.CharField(max_length=30, blank=True, null=True)
+    measurement = models.DecimalField(max_digits=5,
+                                      decimal_places=2,
+                                      null=True,
+                                      blank=True
+                                      )
+    measurement_units = models.CharField(max_length=2,
+                                         choices=measurement_choices,
+                                         default='-'
+                                         )
 
     def __str__(self) -> str:
         return f'Name: {self.name}, Batch: {self.batch}'

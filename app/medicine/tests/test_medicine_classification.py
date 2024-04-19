@@ -1,5 +1,5 @@
 """
-Tests for the medicine API.
+Tests for the medicine classification API.
 """
 from django.contrib.auth import get_user_model
 from django.test import TestCase
