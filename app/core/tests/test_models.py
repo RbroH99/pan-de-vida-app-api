@@ -7,7 +7,10 @@ from django.contrib.auth import get_user_model
 from core.models import (
     MedClass,
     MedicinePresentation,
-    Medicine
+    Medicine,
+    Note,
+    Contact,
+    PhoneNumber,
 )
 
 UserProfile = get_user_model()
@@ -42,3 +45,25 @@ class ModelTests(TestCase):
 
         self.assertEqual(str(medicine),
                          f'Name: {medicine.name}, Batch: {medicine.batch}')
+
+    def test_create_contact(self):
+        """Test creating contact object in the DB."""
+        contact = Contact.objects.create(name="Contact Name")
+
+        self.assertEqual(str(contact), contact.name)
+
+    def test_create_phone_number(self):
+        """Test creating phone number for a contact instance."""
+        contact = Contact.objects.create(name="Contact Name")
+        phone_number = PhoneNumber.objects.create(
+            contact=contact,
+            number='+5359103546'
+        )
+
+        self.assertEqual(contact.name, phone_number.contact.name)
+
+    def test_create_note(self):
+        """Test creating a note object in the DB."""
+        note = Note.objects.create(note="Test Note")
+
+        self.assertEqual(str(note), f'Note No.: {note.id}.')

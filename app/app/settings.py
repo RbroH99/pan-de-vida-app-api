@@ -45,7 +45,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework',
     'drf_spectacular',
+    'phonenumber_field',
     'core',
+    'medicine',
 ]
 
 MIDDLEWARE = [

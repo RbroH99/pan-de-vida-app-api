@@ -11,7 +11,12 @@ from django.contrib.auth.models import (
 
 from django.utils.translation import gettext_lazy as _
 
+from django.conf import settings
 
+from phonenumber_field.modelfields import PhoneNumberField
+
+
+# USER RELATED MODELS
 class UserManager(BaseUserManager):
     """Manager for the users."""
 
@@ -52,8 +57,10 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+# --------------------------------------------------------------------
 
 
+# MEDICINE APP RELATED MODELS
 class MedClass(models.Model):
     """Medicine classification model."""
     name = models.CharField(max_length=60,
@@ -116,3 +123,53 @@ class Medicine(models.Model):
 
     def __str__(self) -> str:
         return f'Name: {self.name}, Batch: {self.batch}'
+# -----------------------------------------------------------------------
+
+
+# CONTACT APP RELATED MODELS
+class Note(models.Model):
+    """Notes and observation for object instances in the DB."""
+    note = models.TextField()
+
+    def __str__(self) -> str:
+        return f'Note No.: {self.id}.'
+
+
+class Contact(models.Model):
+    """Contact info for persons in the db."""
+    gender_choices = (
+        ('M', _('Male')),
+        ('F', _('Female')),
+        ('-', _('Other or not set'))
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True, null=True,
+        on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=40, blank=False, null=False)
+    lastname = models.CharField(max_length=40, blank=True, null=True)
+    gender = models.CharField(max_length=1,
+                              choices=gender_choices,
+                              default='-'
+                              )
+    direction = models.CharField(max_length=255, blank=True, null=True)
+    note = models.ForeignKey(Note,
+                             on_delete=models.CASCADE,
+                             blank=True,
+                             null=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class PhoneNumber(models.Model):
+    """Thelephone number for contact."""
+    contact = models.ForeignKey(Contact,
+                                on_delete=models.CASCADE,
+                                blank=False,
+                                null=False)
+    number = PhoneNumberField(max_length=16,
+                              unique=True,
+                              blank=True,
+                              null=True)
