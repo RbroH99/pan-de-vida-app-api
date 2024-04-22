@@ -153,14 +153,14 @@ class Contact(models.Model):
                               choices=gender_choices,
                               default='-'
                               )
-    direction = models.CharField(max_length=255, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
     note = models.ForeignKey(Note,
                              on_delete=models.CASCADE,
                              blank=True,
                              null=True)
 
     def __str__(self) -> str:
-        return self.name
+        return f'{self.name} {self.lastname}'
 
 
 class PhoneNumber(models.Model):

@@ -50,7 +50,7 @@ class ModelTests(TestCase):
         """Test creating contact object in the DB."""
         contact = Contact.objects.create(name="Contact Name")
 
-        self.assertEqual(str(contact), contact.name)
+        self.assertEqual(str(contact), f'{contact.name} {contact.lastname}')
 
     def test_create_phone_number(self):
         """Test creating phone number for a contact instance."""
