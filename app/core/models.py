@@ -13,8 +13,6 @@ from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 
-from phonenumber_field.modelfields import PhoneNumberField
-
 
 # USER RELATED MODELS
 class UserManager(BaseUserManager):
@@ -164,12 +162,12 @@ class Contact(models.Model):
 
 
 class PhoneNumber(models.Model):
-    """Thelephone number for contact."""
+    """Phone number for contact."""
     contact = models.ForeignKey(Contact,
                                 on_delete=models.CASCADE,
                                 blank=False,
                                 null=False)
-    number = PhoneNumberField(max_length=16,
+    number = models.CharField(max_length=16,
                               unique=True,
-                              blank=True,
-                              null=True)
+                              blank=False,
+                              null=False)

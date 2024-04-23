@@ -11,12 +11,12 @@ from rest_framework.test import APIClient
 from core.models import Contact
 
 
-CONTACTS_URL = reverse('contact:contacts-list')
+CONTACTS_URL = reverse('contact:contact-list')
 
 
 def detail_url(contact_id):
     """Create and return a contact's detail URL."""
-    return reverse('contact:contacts-detail', args=[contact_id])
+    return reverse('contact:contact-detail', args=[contact_id])
 
 
 def create_user(id=99999, email="user@example.com"):
@@ -39,7 +39,7 @@ class PublicContactAPITests(TestCase):
             "name": "Name",
             "lastname": "Last Name",
             "gender": "M",
-            "user": user,
+            "user": user.id,
             "address": "St.Domingo 114A b/Heroes Lane and Columbia, Tijuana."
         }
         res = self.client.post(CONTACTS_URL, payload, format='json')
@@ -91,7 +91,7 @@ class PrivateContactAPITests(TestCase):
             "name": "Name",
             "lastname": "Last Name",
             "gender": "M",
-            "user": user,
+            "user": user.id,
             "address": "St.Domingo 114A b/Heroes Lane and Columbia, Tijuana."
         }
         res = self.client.post(CONTACTS_URL, payload, format='json')

@@ -11,12 +11,12 @@ from rest_framework.test import APIClient
 from core.models import Note
 
 
-NOTES_URL = reverse('contact:notes-list')
+NOTES_URL = reverse('contact:note-list')
 
 
 def detail_url(note_id):
     """Create and return a note detail URL."""
-    return reverse('contact:notes-detail', args=[note_id])
+    return reverse('contact:note-detail', args=[note_id])
 
 
 class PublicNoteAPITests(TestCase):
@@ -87,7 +87,7 @@ class PrivateNoteAPITests(TestCase):
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(note.name, res.data['note'])
+        self.assertEqual(note.note, res.data['note'])
 
     def test_note_post(self):
         """Test authenticated post to note success."""

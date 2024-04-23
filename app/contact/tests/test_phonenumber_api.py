@@ -14,12 +14,12 @@ from core.models import (
 )
 
 
-PHONE_NUMBER_URL = reverse('contact:phone_number-list')
+PHONE_NUMBER_URL = reverse('contact:phonenumber-list')
 
 
 def detail_url(phone_number_id):
     """Create and return a phone_numbers's detail URL."""
-    return reverse('contact:contacts-detail', args=[phone_number_id])
+    return reverse('contact:phonenumber-detail', args=[phone_number_id])
 
 
 def create_user(id=99999, email="user@example.com"):
@@ -28,9 +28,12 @@ def create_user(id=99999, email="user@example.com"):
 
     return user
 
+
 def create_contact(name="Phone Contact"):
     """Create and return a new contact."""
     contact = Contact.objects.create(name="Phone Contact")
+
+    return contact
 
 
 class PublicPhoneNumberAPITests(TestCase):
@@ -43,7 +46,7 @@ class PublicPhoneNumberAPITests(TestCase):
         """Test creating a new phone number instance in DB."""
         contact = create_contact()
         payload = {
-            "contact": contact,
+            "contact": contact.id,
             "number": "+53599999999"
         }
         res = self.client.post(PHONE_NUMBER_URL, payload, format='json')
@@ -60,7 +63,7 @@ class PublicPhoneNumberAPITests(TestCase):
         res = self.client.get(PHONE_NUMBER_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertNotEqual(len(res.data), Contact.objects.count())
+        self.assertNotEqual(len(res.data), PhoneNumber.objects.count())
 
     def test_anonymous_update_phone_numbers(self):
         """Test unauthenticated trying to update phone number instance."""
@@ -79,7 +82,8 @@ class PublicPhoneNumberAPITests(TestCase):
     def test_anonymous_delete_phone_number(self):
         """Test unauthenticated deleting phone number results in error."""
         contact = create_contact()
-        phone_number = PhoneNumber.objects.create(contact=contact, number="+1 23456789012")
+        phone_number = PhoneNumber.objects.create(contact=contact,
+                                                  number="+1 23456789012")
 
         url = detail_url(phone_number.id)
         res = self.client.delete(url)
@@ -92,7 +96,7 @@ class PrivatePhoneNumberAPITests(TestCase):
     """Test private request to the phone number API."""
 
     def setUp(self):
-        self.user = create_user(name="Self User")
+        self.user = create_user()
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
@@ -101,24 +105,24 @@ class PrivatePhoneNumberAPITests(TestCase):
         contact = create_contact()
         payload = {
             "contact": contact.id,
-            "number": "+53599999999"
+            "number": "+5399999999"
         }
         res = self.client.post(PHONE_NUMBER_URL, payload, format='json')
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        self.assertIn("phonenumber", res.data)
+        self.assertIn("number", res.data)
 
     def test_create_valid_phone_number(self):
         """Test creating a valid phone number."""
         contact = create_contact()
         payload = {
             "contact": contact.id,
-            "number": "+53599999999" # Un número de teléfono válido
+            "number": "+5399999999"
         }
         res = self.client.post(PHONE_NUMBER_URL, payload, format='json')
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        self.assertIn("phonenumber", res.data)
+        self.assertIn("number", res.data)
         self.assertEqual(PhoneNumber.objects.count(), 1)
         self.assertEqual(PhoneNumber.objects.get().number, payload["number"])
 
@@ -127,7 +131,7 @@ class PrivatePhoneNumberAPITests(TestCase):
         contact = create_contact()
         payload = {
             "contact": contact.id,
-            "number": "1234567890" # Un número de teléfono inválido
+            "number": "1234567890"
         }
         res = self.client.post(PHONE_NUMBER_URL, payload, format='json')
 
@@ -162,7 +166,8 @@ class PrivatePhoneNumberAPITests(TestCase):
     def test_delete_phone_number(self):
         """Test deleting a phone number."""
         contact = create_contact()
-        phone_number = PhoneNumber.objects.create(contact=contact, number="+53591111111")
+        phone_number = PhoneNumber.objects.create(contact=contact,
+                                                  number="+53591111111")
         url = detail_url(phone_number.id)
         res = self.client.delete(url)
 
