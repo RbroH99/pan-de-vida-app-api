@@ -13,7 +13,8 @@ from contact import serializers
 from core.models import (
     Note,
     Contact,
-    PhoneNumber
+    PhoneNumber,
+    WorkingSite,
 )
 
 
@@ -39,3 +40,9 @@ class PhoneNumberViewSet(BasePrivateViewSet):
     """Views for the phone number API."""
     queryset = PhoneNumber.objects.all()
     serializer_class = serializers.PhoneNumberSerializer
+
+
+class WorkingSiteViewSet(BasePrivateViewSet):
+    """Views for the working sites."""
+    queryset = WorkingSite.objects.all()
+    serializer_class = serializers.WorkingSiteSerializer

@@ -11,6 +11,7 @@ from core.models import (
     Note,
     Contact,
     PhoneNumber,
+    WorkingSite,
 )
 
 UserProfile = get_user_model()
@@ -67,3 +68,9 @@ class ModelTests(TestCase):
         note = Note.objects.create(note="Test Note")
 
         self.assertEqual(str(note), f'Note No.: {note.id}.')
+
+    def test_create_working_site(self):
+        """Test creating working site instance in the DB."""
+        workingsite = WorkingSite.objects.create(name="Test Name")
+
+        self.assertEqual(str(workingsite), workingsite.name)

@@ -9,6 +9,7 @@ from core.models import (
     Note,
     Contact,
     PhoneNumber,
+    WorkingSite
 )
 
 from django.utils.translation import gettext as _
@@ -75,3 +76,12 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(msg)
 
         return number
+
+
+class WorkingSiteSerializer(serializers.ModelSerializer):
+    """Serializer for the working site model."""
+
+    class Meta:
+        model = WorkingSite
+        fields = ['id', 'name']
+        read_only_fiels = ['id']

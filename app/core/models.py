@@ -171,3 +171,11 @@ class PhoneNumber(models.Model):
                               unique=True,
                               blank=False,
                               null=False)
+
+
+class WorkingSite(models.Model):
+    """Working site for the medics."""
+    name = models.CharField(max_length=70, blank=False, null=False)
+
+    def __str__(self) -> str:
+        return self.name

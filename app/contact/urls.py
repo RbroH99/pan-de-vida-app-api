@@ -11,6 +11,7 @@ router = DefaultRouter()
 router.register('notes', views.NoteViewSet)
 router.register('contacts', views.ContactViewSet)
 router.register('phone_numbers', views.PhoneNumberViewSet)
+router.register('working_sites', views.WorkingSiteViewSet)
 
 
 app_name = 'contact'
