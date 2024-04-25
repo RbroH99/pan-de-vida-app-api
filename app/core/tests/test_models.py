@@ -12,6 +12,7 @@ from core.models import (
     Contact,
     PhoneNumber,
     WorkingSite,
+    Medic,
 )
 
 UserProfile = get_user_model()
@@ -74,3 +75,11 @@ class ModelTests(TestCase):
         workingsite = WorkingSite.objects.create(name="Test Name")
 
         self.assertEqual(str(workingsite), workingsite.name)
+
+    def test_create_medic(self):
+        """Test creating a medic contact instance."""
+        contact = Contact.objects.create(name="Contact for Medic")
+
+        medic = Medic.objects.create(contact=contact, specialty="Geriatra")
+
+        self.assertEqual(str(medic), f'{contact.name}: {medic.specialty}')

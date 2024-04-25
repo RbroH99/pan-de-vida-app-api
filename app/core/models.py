@@ -179,3 +179,21 @@ class WorkingSite(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Medic(models.Model):
+    """Medic contact in the system."""
+    contact = models.ForeignKey(Contact,
+                                null=False,
+                                blank=False,
+                                on_delete=models.CASCADE
+                                )
+    workingsite = models.ForeignKey(WorkingSite,
+                                    blank=True,
+                                    null=True,
+                                    on_delete=models.SET_NULL
+                                    )
+    specialty = models.CharField(max_length=30, blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f'{self.contact.name}: {self.specialty}'
