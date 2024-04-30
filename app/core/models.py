@@ -9,6 +9,8 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 
+from django_countries.field import CountryField
+
 from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
@@ -153,7 +155,7 @@ class Contact(models.Model):
                               )
     address = models.CharField(max_length=255, blank=True, null=True)
     note = models.ForeignKey(Note,
-                             on_delete=models.CASCADE,
+                             on_delete=models.SET_NULL,
                              blank=True,
                              null=True)
 
@@ -183,7 +185,7 @@ class WorkingSite(models.Model):
 
 class Medic(models.Model):
     """Medic contact in the system."""
-    contact = models.ForeignKey(Contact,
+    contact = models.OneToOneField(Contact,
                                 null=False,
                                 blank=False,
                                 on_delete=models.CASCADE
@@ -197,3 +199,15 @@ class Medic(models.Model):
 
     def __str__(self) -> str:
         return f'{self.contact.name}: {self.specialty}'
+
+
+class Donor(models.Model):
+    """Donor in the system."""
+    contact = models.ForeignKey(Contact,
+                                on_delete=models.CASCADE,
+                                blank=False,
+                                null=False)
+    country = CountryField(null=True, blank=True)
+    city = models.CharField(max_length=45,
+                            null=True,
+                            blank=True)

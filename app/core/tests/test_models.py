@@ -13,6 +13,7 @@ from core.models import (
     PhoneNumber,
     WorkingSite,
     Medic,
+    Donor,
 )
 
 UserProfile = get_user_model()
@@ -83,3 +84,11 @@ class ModelTests(TestCase):
         medic = Medic.objects.create(contact=contact, specialty="Geriatra")
 
         self.assertEqual(str(medic), f'{contact.name}: {medic.specialty}')
+
+    def test_create_donor(self):
+        """Test creating a donor contact instance."""
+        contact = Contact.objects.create(name="Contact for Donor")
+
+        donor = Donor.objects.create(contact=contact, city="Florida")
+
+        self.assertEqual(str(donor), f'{contact.name}: {donor.city}')

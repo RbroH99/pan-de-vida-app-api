@@ -15,6 +15,7 @@ from core.models import (
     Contact,
     PhoneNumber,
     WorkingSite,
+    Medic
 )
 
 
@@ -46,3 +47,9 @@ class WorkingSiteViewSet(BasePrivateViewSet):
     """Views for the working sites."""
     queryset = WorkingSite.objects.all()
     serializer_class = serializers.WorkingSiteSerializer
+
+
+class MedicViewSet(BasePrivateViewSet):
+    """Views for the medic api."""
+    queryset = Medic.objects.all()
+    serializer_class = serializers.MedicSerializer
