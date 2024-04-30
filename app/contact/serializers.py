@@ -12,7 +12,8 @@ from core.models import (
     Contact,
     PhoneNumber,
     WorkingSite,
-    Medic
+    Medic,
+    Donor
 )
 
 from django.utils.translation import gettext as _
@@ -91,15 +92,13 @@ class WorkingSiteSerializer(serializers.ModelSerializer):
         read_only_fiels = ['id']
 
 
-class MedicSerializer(serializers.ModelSerializer):
-    """Serializer for the medic object."""
+class BaseContactChildrenSerializer(serializers.ModelSerializer):
+    """Base serializer for diferent diferent contact types."""
     contact = ContactSerializer(read_only=False)
-    workingsite = WorkingSiteSerializer(read_only=False,
-                                        required=False)
 
     class Meta:
-        model = Medic
-        fields = ['contact', 'workingsite', 'specialty']
+        fields = ['id', 'contact']
+        read_only_fields = ['id']
 
     def validate_contact(self, contact_info):
         if "id" in contact_info:
@@ -116,6 +115,34 @@ class MedicSerializer(serializers.ModelSerializer):
         contact = Contact.objects.create(**contact_info)
         return contact
 
+    def update(self, instance, validated_data):
+        contact_data = validated_data.pop('contact', None)
+        if contact_data:
+            contact = instance.contact
+            # Actualizar los atributos del contacto
+            for attr, value in contact_data.items():
+                setattr(contact, attr, value)
+            contact.save()
+
+        # Actualizar los atributos de la instancia
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
+
+
+class MedicSerializer(serializers.ModelSerializer):
+    """Serializer for the medic object."""
+    workingsite = WorkingSiteSerializer(read_only=False,
+                                        required=False)
+
+    class Meta(BaseContactChildrenSerializer.Meta):
+        model = Medic
+        fields = BaseContactChildrenSerializer.Meta.fields + \
+            ['workingsite', 'specialty']
+
+
     def validate_workingsite(self, workingsite_info):
         if "name" not in workingsite_info:
             raise serializers.ValidationError(
@@ -129,18 +156,12 @@ class MedicSerializer(serializers.ModelSerializer):
 
         return workingsite
 
-    def update(self, instance, validated_data):
-        contact_data = validated_data.pop('contact', None)
-        if contact_data:
-            contact = instance.contact
-            # Actualizar los atributos del contacto
-            for attr, value in contact_data.items():
-                setattr(contact, attr, value)
-            contact.save()
 
-        # Actualizar los atributos del medic
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
+class DonorSerializer(BaseContactChildrenSerializer):
+    """Serializer for the donor objects."""
+    # Tengo que ver cómo serializar el CountryField
 
-        return instance
+    class Meta(BaseContactChildrenSerializer.Meta):
+        model = Donor
+        fields = BaseContactChildrenSerializer.Meta.fields + \
+            ['country', 'city']

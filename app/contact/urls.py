@@ -13,6 +13,7 @@ router.register('contacts', views.ContactViewSet)
 router.register('phone_numbers', views.PhoneNumberViewSet)
 router.register('working_sites', views.WorkingSiteViewSet)
 router.register('medics', views.MedicViewSet)
+router.register('donors', views.DonorViewSet)
 
 
 app_name = 'contact'

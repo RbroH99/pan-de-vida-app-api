@@ -15,7 +15,8 @@ from core.models import (
     Contact,
     PhoneNumber,
     WorkingSite,
-    Medic
+    Medic,
+    Donor
 )
 
 
@@ -53,3 +54,9 @@ class MedicViewSet(BasePrivateViewSet):
     """Views for the medic api."""
     queryset = Medic.objects.all()
     serializer_class = serializers.MedicSerializer
+
+
+class DonorViewSet(BasePrivateViewSet):
+    """Views for the medic api."""
+    queryset = Donor.objects.all()
+    serializer_class = serializers.DonorSerializer
