@@ -160,3 +160,17 @@ class PrivatedonorAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
+    def test_create_donor_with_country(self):
+        """Test creating a donor with valid country."""
+        payload = self.donor_data|{'country': 'US'}
+
+        res = self.client.post(DONOR_URL,payload, format='json')
+        print(res.data)
+
+        self.assertEqual(res.data.country.code, "US")
+        self.assertEqual(res.data.country.name, "United States")
+
+    def test_create_donor_with_invalid_country(self):
+        """Test create a donor with invalid country."""
+        with self.assertRaises(ValueError):
+            Donor.objects.create(name="John Doe", country="INVALID")

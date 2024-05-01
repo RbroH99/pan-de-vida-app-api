@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 
 from django.shortcuts import get_object_or_404
 
+from django_countries.serializers import CountryFieldMixin
+
 from core.models import (
     Note,
     Contact,
@@ -132,7 +134,7 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
         return instance
 
 
-class MedicSerializer(serializers.ModelSerializer):
+class MedicSerializer(BaseContactChildrenSerializer):
     """Serializer for the medic object."""
     workingsite = WorkingSiteSerializer(read_only=False,
                                         required=False)
@@ -157,9 +159,8 @@ class MedicSerializer(serializers.ModelSerializer):
         return workingsite
 
 
-class DonorSerializer(BaseContactChildrenSerializer):
+class DonorSerializer(CountryFieldMixin, BaseContactChildrenSerializer):
     """Serializer for the donor objects."""
-    # Tengo que ver cómo serializar el CountryField
 
     class Meta(BaseContactChildrenSerializer.Meta):
         model = Donor

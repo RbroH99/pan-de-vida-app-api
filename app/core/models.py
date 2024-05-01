@@ -9,7 +9,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 
-from django_countries.field import CountryField
+from django_countries.fields import CountryField
 
 from django.utils.translation import gettext_lazy as _
 
@@ -211,3 +211,6 @@ class Donor(models.Model):
     city = models.CharField(max_length=45,
                             null=True,
                             blank=True)
+
+    def __str__(self) -> str:
+        return f'{self.contact.name}: {self.city}'
