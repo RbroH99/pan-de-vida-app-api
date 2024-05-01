@@ -14,6 +14,7 @@ from core.models import (
     WorkingSite,
     Medic,
     Donor,
+    Munincipality,
 )
 
 UserProfile = get_user_model()
@@ -92,3 +93,9 @@ class ModelTests(TestCase):
         donor = Donor.objects.create(contact=contact, city="Florida")
 
         self.assertEqual(str(donor), f'{contact.name}: {donor.city}')
+
+    def test_create_munincipality(self):
+        """Test creating munincipaliy."""
+        mun = Munincipality.objects.create(name="Gibara", province="HOL")
+
+        self.assertEqual(str(mun), f'{mun.name}, {mun.province}')

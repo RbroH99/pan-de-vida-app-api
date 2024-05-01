@@ -21,6 +21,7 @@ def detail_url(donor_id):
     """Create and return a donor's detail URL."""
     return reverse('contact:donor-detail', args=[donor_id])
 
+
 def create_donor(contact_name="John", country="ESP", city="Madrid"):
     """Create and return a new donor instance."""
     contact = Contact.objects.create(name=contact_name)
@@ -102,7 +103,7 @@ class PrivatedonorAPITest(TestCase):
         """
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            id = 999999,
+            id=999999,
             email='test@example.com',
             password='testpass'
         )
@@ -162,10 +163,9 @@ class PrivatedonorAPITest(TestCase):
 
     def test_create_donor_with_country(self):
         """Test creating a donor with valid country."""
-        payload = self.donor_data|{'country': 'US'}
+        payload = self.donor_data | {'country': 'US'}
 
-        res = self.client.post(DONOR_URL,payload, format='json')
-        print(res.data)
+        res = self.client.post(DONOR_URL, payload, format='json')
 
         self.assertEqual(res.data.country.code, "US")
         self.assertEqual(res.data.country.name, "United States")

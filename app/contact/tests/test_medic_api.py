@@ -22,6 +22,7 @@ def detail_url(medic_id):
     """Create and return a medic's detail URL."""
     return reverse('contact:medic-detail', args=[medic_id])
 
+
 def create_medic(contact_name="John", spec="Pedriatician", wks="wks1"):
     """Create and return a new medic instance."""
     contact = Contact.objects.create(name=contact_name)
@@ -105,7 +106,7 @@ class PrivateMedicAPITest(TestCase):
         """
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            id = 999999,
+            id=999999,
             email='test@example.com',
             password='testpass'
         )
@@ -163,4 +164,3 @@ class PrivateMedicAPITest(TestCase):
         res = self.client.delete(url)
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
-

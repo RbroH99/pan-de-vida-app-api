@@ -3,6 +3,7 @@ Serializers for the medicine API.
 """
 from rest_framework import serializers
 
+from core.utils import measurement_choices
 from core.models import (
     MedClass,
     MedicinePresentation,
@@ -35,6 +36,8 @@ class MedicinePresentationSerializer(serializers.ModelSerializer):
 class MedicineSerializer(BasicNameOnlyModelSerializer):
     """Serializer for medicine endpoints."""
     presentation = MedicinePresentationSerializer(many=False, required=False)
+    measurement_units = serializers.ChoiceField(choices=measurement_choices,
+                                                default='-')
 
     class Meta(BasicNameOnlyModelSerializer.Meta):
         model = Medicine

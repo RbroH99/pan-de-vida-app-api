@@ -18,6 +18,10 @@ from core.models import (
     Donor
 )
 
+from core.utils import (
+    gender_choices
+)
+
 from django.utils.translation import gettext as _
 
 import re
@@ -40,7 +44,7 @@ class ContactSerializer(serializers.ModelSerializer):
         required=False
         )
     note = NoteSerializer(many=True, required=False)
-    gender = serializers.ChoiceField(choices=Contact.gender_choices,
+    gender = serializers.ChoiceField(choices=gender_choices,
                                      default='-')
 
     class Meta:
@@ -143,7 +147,6 @@ class MedicSerializer(BaseContactChildrenSerializer):
         model = Medic
         fields = BaseContactChildrenSerializer.Meta.fields + \
             ['workingsite', 'specialty']
-
 
     def validate_workingsite(self, workingsite_info):
         if "name" not in workingsite_info:

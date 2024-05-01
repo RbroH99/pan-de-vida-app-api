@@ -11,9 +11,12 @@ from django.contrib.auth.models import (
 
 from django_countries.fields import CountryField
 
-from django.utils.translation import gettext_lazy as _
-
 from django.conf import settings
+from .utils import (
+    PROVINCES_CUBA,
+    measurement_choices,
+    gender_choices,
+)
 
 
 # USER RELATED MODELS
@@ -85,17 +88,6 @@ class MedicinePresentation(models.Model):
 
 class Medicine(models.Model):
     """Medicine object in db."""
-    measurement_choices = (
-        ('mL', _('Milliliters')),
-        ('oz', _('Ounce')),
-        ('pt', _('Pint')),
-        ('L', _('Liter')),
-        ('mg', _('Milligram')),
-        ('g', _('Gram')),
-        ('lb', _('Pound')),
-        ('-', _('Not Set'))
-    )
-
     name = models.CharField(max_length=60,
                             blank=False,
                             null=False
@@ -137,11 +129,6 @@ class Note(models.Model):
 
 class Contact(models.Model):
     """Contact info for persons in the db."""
-    gender_choices = (
-        ('M', _('Male')),
-        ('F', _('Female')),
-        ('-', _('Other or not set'))
-    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True, null=True,
@@ -186,10 +173,9 @@ class WorkingSite(models.Model):
 class Medic(models.Model):
     """Medic contact in the system."""
     contact = models.OneToOneField(Contact,
-                                null=False,
-                                blank=False,
-                                on_delete=models.CASCADE
-                                )
+                                   null=False,
+                                   blank=False,
+                                   on_delete=models.CASCADE)
     workingsite = models.ForeignKey(WorkingSite,
                                     blank=True,
                                     null=True,
@@ -214,3 +200,15 @@ class Donor(models.Model):
 
     def __str__(self) -> str:
         return f'{self.contact.name}: {self.city}'
+
+
+class Munincipality(models.Model):
+    """Munincipality of given provinces."""
+    name = models.CharField()
+    province = models.CharField(
+        max_length=3,
+        choices=PROVINCES_CUBA,
+        default='UNK')
+
+    def __str__(self) -> str:
+        return f'{self.name}, {self.province}'
