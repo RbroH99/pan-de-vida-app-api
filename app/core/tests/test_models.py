@@ -4,18 +4,7 @@ Test for the models.
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
-from core.models import (
-    MedClass,
-    MedicinePresentation,
-    Medicine,
-    Note,
-    Contact,
-    PhoneNumber,
-    WorkingSite,
-    Medic,
-    Donor,
-    Munincipality,
-)
+from core import models
 
 UserProfile = get_user_model()
 
@@ -33,33 +22,33 @@ class ModelTests(TestCase):
 
     def test_create_medclass(self):
         """Test creating medclass"""
-        medclass = MedClass.objects.create(name="Analgésico")
+        medclass = models.MedClass.objects.create(name="Analgésico")
 
         self.assertEqual(str(medclass), "Analgésico")
 
     def test_create_medicine_presentation(self):
         """Test creating medicine presentation instance in the DB."""
-        medpres = MedicinePresentation.objects.create(name="Óvulo")
+        medpres = models.MedicinePresentation.objects.create(name="Óvulo")
 
         self.assertEqual(str(medpres), medpres.name)
 
     def test_create_medicine(self):
         """Test creating a medicine object in the DB."""
-        medicine = Medicine.objects.create(name="Aspirina")
+        medicine = models.Medicine.objects.create(name="Aspirina")
 
         self.assertEqual(str(medicine),
                          f'Name: {medicine.name}, Batch: {medicine.batch}')
 
     def test_create_contact(self):
         """Test creating contact object in the DB."""
-        contact = Contact.objects.create(name="Contact Name")
+        contact = models.Contact.objects.create(name="Contact Name")
 
         self.assertEqual(str(contact), f'{contact.name} {contact.lastname}')
 
     def test_create_phone_number(self):
         """Test creating phone number for a contact instance."""
-        contact = Contact.objects.create(name="Contact Name")
-        phone_number = PhoneNumber.objects.create(
+        contact = models.Contact.objects.create(name="Contact Name")
+        phone_number = models.PhoneNumber.objects.create(
             contact=contact,
             number='+5359103546'
         )
@@ -68,34 +57,51 @@ class ModelTests(TestCase):
 
     def test_create_note(self):
         """Test creating a note object in the DB."""
-        note = Note.objects.create(note="Test Note")
+        note = models.Note.objects.create(note="Test Note")
 
         self.assertEqual(str(note), f'Note No.: {note.id}.')
 
     def test_create_working_site(self):
         """Test creating working site instance in the DB."""
-        workingsite = WorkingSite.objects.create(name="Test Name")
+        workingsite = models.WorkingSite.objects.create(name="Test Name")
 
         self.assertEqual(str(workingsite), workingsite.name)
 
     def test_create_medic(self):
         """Test creating a medic contact instance."""
-        contact = Contact.objects.create(name="Contact for Medic")
+        contact = models.Contact.objects.create(name="Contact for Medic")
 
-        medic = Medic.objects.create(contact=contact, specialty="Geriatra")
+        medic = models.Medic.objects.create(contact=contact,
+                                            specialty="Geriatra")
 
         self.assertEqual(str(medic), f'{contact.name}: {medic.specialty}')
 
     def test_create_donor(self):
         """Test creating a donor contact instance."""
-        contact = Contact.objects.create(name="Contact for Donor")
+        contact = models.Contact.objects.create(name="Contact for Donor")
 
-        donor = Donor.objects.create(contact=contact, city="Florida")
+        donor = models.Donor.objects.create(contact=contact, city="Florida")
 
         self.assertEqual(str(donor), f'{contact.name}: {donor.city}')
 
-    def test_create_munincipality(self):
+    def test_create_municipality(self):
         """Test creating munincipaliy."""
-        mun = Munincipality.objects.create(name="Gibara", province="HOL")
+        mun = models.Municipality.objects.create(name="Gibara", province="HOL")
 
         self.assertEqual(str(mun), f'{mun.name}, {mun.province}')
+
+    def test_create_denomination(self):
+        """Test creating a denomination instance."""
+        denom = models.Denomination.objects.create(name="Metodista")
+
+        self.assertEqual(str(denom), f'{denom.name}')
+
+    def test_create_church(self):
+        """Test creating a church."""
+        denomination = models.Denomination.objects.create(name="Metodista")
+        priest = models.Contact.objects.create(name='Pastor')
+        church = models.Church.objects.create(name="Iglesia",
+                                              denomination=denomination,
+                                              priest=priest)
+
+        self.assertEqual(str(church), f'{church.name}, {church.denomination}')

@@ -1,5 +1,5 @@
 """
-Tests for de meddic API.
+Tests for de donnor API.
 """
 from django.contrib.auth import get_user_model
 from django.test import TestCase

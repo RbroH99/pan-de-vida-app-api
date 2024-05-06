@@ -114,7 +114,7 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(_("Contact do not exists."))
             return contact
         elif "name" not in contact_info:
-            raise serializers.ValidationError(_("Medic contact needs a name."))
+            raise serializers.ValidationError(_("Contact needs a name."))
 
         if "gender" not in contact_info:
             contact_info["gender"] = '-'

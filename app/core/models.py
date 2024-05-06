@@ -1,8 +1,9 @@
 """
 Models for the pandevida app API.
 """
+from django.utils import timezone
+from django.conf import settings
 from django.db import models
-
 from django.contrib.auth.models import (
     AbstractBaseUser,
     PermissionsMixin,
@@ -11,7 +12,6 @@ from django.contrib.auth.models import (
 
 from django_countries.fields import CountryField
 
-from django.conf import settings
 from .utils import (
     PROVINCES_CUBA,
     measurement_choices,
@@ -200,10 +200,12 @@ class Donor(models.Model):
 
     def __str__(self) -> str:
         return f'{self.contact.name}: {self.city}'
+# -----------------------------------------------------------------------
 
 
-class Munincipality(models.Model):
-    """Munincipality of given provinces."""
+# CHURCH APP RELATED MODELS
+class Municipality(models.Model):
+    """Municipality of given provinces."""
     name = models.CharField()
     province = models.CharField(
         max_length=3,
@@ -212,3 +214,64 @@ class Munincipality(models.Model):
 
     def __str__(self) -> str:
         return f'{self.name}, {self.province}'
+
+
+class Denomination(models.Model):
+    """Denomination of the churchs."""
+    name = models.CharField(max_length=60,
+                            unique=True,
+                            blank=False,
+                            null=False)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Church(models.Model):
+    """Church objects in the System."""
+    name = models.CharField(max_length=60,
+                            blank=False,
+                            null=False)
+    denomination = models.ForeignKey(Denomination,
+                                     null=True,
+                                     blank=True,
+                                     on_delete=models.SET_NULL)
+    priest = models.ForeignKey(Contact,
+                               null=True,
+                               blank=True,
+                               on_delete=models.SET_NULL,
+                               related_name='church_priest')
+    facilitator = models.ForeignKey(Contact,
+                                    null=True,
+                                    blank=True,
+                                    on_delete=models.SET_NULL,
+                                    related_name='church_facilitator')
+    note = models.ForeignKey(Note,
+                             blank=True,
+                             null=True,
+                             on_delete=models.SET_NULL)
+    municipality = models.ForeignKey(Municipality,
+                                     blank=True,
+                                     null=True,
+                                     on_delete=models.SET_NULL)
+    inscript = models.DateField(default=timezone.now)
+
+    def __str__(self) -> str:
+        return f'{self.name}, {self.denomination.name}'
+
+
+# Pacient Model is also a contact instance
+class Pacient(models.Model):
+    """Pacients in the system."""
+    contact = models.OneToOneField(Contact,
+                                   null=False,
+                                   blank=False,
+                                   on_delete=models.CASCADE)
+    ci = models.CharField(max_length=11,
+                          blank=False,
+                          null=False)
+    inscript = models.DateField(default=timezone.now)
+    church = models.ForeignKey(Church,
+                               blank=False,
+                               null=False,
+                               on_delete=models.CASCADE)
