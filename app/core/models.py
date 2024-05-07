@@ -115,6 +115,33 @@ class Medicine(models.Model):
 
     def __str__(self) -> str:
         return f'Name: {self.name}, Batch: {self.batch}'
+
+
+class Disease(models.Model):
+    """Diseases pacients suffer."""
+    name = models.CharField(max_length=80,
+                            blank=False,
+                            null=False)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Treatment(models.Model):
+    """Medic treatment for pacient-illnesses."""
+    patient = models.ForeignKey('Patient',
+                                blank=False,
+                                null=False,
+                                on_delete=models.CASCADE)
+    disease = models.ForeignKey(Disease,
+                                blank=False,
+                                null=False,
+                                on_delete=models.CASCADE)
+    medicine = models.ManyToManyField(Medicine,
+                                      blank=True)
+
+    def __str__(self) -> str:
+        return f'{str(self.patient)}, {self.disease.name}'
 # -----------------------------------------------------------------------
 
 
@@ -200,6 +227,47 @@ class Donor(models.Model):
 
     def __str__(self) -> str:
         return f'{self.contact.name}: {self.city}'
+
+
+class Patient(models.Model):
+    """Patients in the system."""
+    code = models.CharField(max_length=12, unique=True, editable=False)
+    contact = models.OneToOneField(Contact,
+                                   null=False,
+                                   blank=False,
+                                   on_delete=models.CASCADE)
+    ci = models.CharField(max_length=11,
+                          blank=False,
+                          null=False,
+                          unique=True)
+    inscript = models.DateField(default=timezone.now)
+    church = models.ForeignKey('Church',
+                               blank=False,
+                               null=False,
+                               on_delete=models.CASCADE)
+
+    def generate_code(self):
+        """Generate unique code for pacient from church id."""
+        last_patient = \
+            Patient.objects.filter(church=self.church)\
+            .order_by('-code').first()
+        if last_patient:
+            try:
+                last_specific_id = str(last_patient.code).split('-')[-1]
+                code = f'{self.church.id}-{int(last_specific_id) + 1}'
+            except (ValueError, IndexError):
+                code = f'{self.church.id}-1'
+        else:
+            code = f'{self.church.id}-1'
+
+        return code
+
+    def save(self, *args, **kwargs):
+        self.code = self.generate_code()
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f'Patient: {self.code}'
 # -----------------------------------------------------------------------
 
 
@@ -258,20 +326,3 @@ class Church(models.Model):
 
     def __str__(self) -> str:
         return f'{self.name}, {self.denomination.name}'
-
-
-# Pacient Model is also a contact instance
-class Pacient(models.Model):
-    """Pacients in the system."""
-    contact = models.OneToOneField(Contact,
-                                   null=False,
-                                   blank=False,
-                                   on_delete=models.CASCADE)
-    ci = models.CharField(max_length=11,
-                          blank=False,
-                          null=False)
-    inscript = models.DateField(default=timezone.now)
-    church = models.ForeignKey(Church,
-                               blank=False,
-                               null=False,
-                               on_delete=models.CASCADE)

@@ -3,6 +3,7 @@ Utils needed in the core app.
 """
 from django.utils.translation import gettext as _
 
+
 measurement_choices = (
     ('mL', _('Milliliters')),
     ('oz', _('Ounce')),
@@ -14,11 +15,13 @@ measurement_choices = (
     ('-', _('Not Set'))
 )
 
+
 gender_choices = (
     ('M', _('Male')),
     ('F', _('Female')),
     ('-', _('Other or not set'))
 )
+
 
 PROVINCES_CUBA = (
     ('PRI', 'Pinar del Río'),

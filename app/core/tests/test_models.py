@@ -105,3 +105,48 @@ class ModelTests(TestCase):
                                               priest=priest)
 
         self.assertEqual(str(church), f'{church.name}, {church.denomination}')
+
+    def test_create_disease(self):
+        """Test creating new desease instance."""
+        disease = models.Disease.objects.create(name="Hipotiroidismo")
+
+        self.assertEqual(str(disease), disease.name)
+
+    def test_create_patient(self):
+        """Test creating a patient in the system."""
+        denomination = models.Denomination.objects.create(name="Metodista")
+        priest = models.Contact.objects.create(name='Pastor')
+        church = models.Church.objects.create(name="Iglesia",
+                                              denomination=denomination,
+                                              priest=priest)
+        contact = models.Contact.objects.create(name="Contact for Patient")
+
+        patient = models.Patient.objects.create(
+            contact=contact,
+            ci = "12345678987",
+            church = church,
+        )
+
+        self.assertEqual(str(patient), f'Patient: {patient.code}')
+
+    def test_create_treatment(self):
+        """Test create treatment for a patient."""
+        denomination = models.Denomination.objects.create(name="Metodista")
+        priest = models.Contact.objects.create(name='Pastor')
+        church = models.Church.objects.create(name="Iglesia",
+                                              denomination=denomination,
+                                              priest=priest)
+        contact = models.Contact.objects.create(name="Contact for Patient")
+        patient = models.Patient.objects.create(
+            contact=contact,
+            ci = "12345678987",
+            church = church,
+        )
+        disease = models.Disease.objects.create(name="Disease for treatment")
+
+        treatment = models.Treatment.objects.create(
+            patient=patient,
+            disease=disease,
+        )
+
+        self.assertEqual(str(treatment), f'{str(patient)}, {disease.name}')

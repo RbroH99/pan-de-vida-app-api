@@ -13,7 +13,9 @@ from medicine import serializers
 from core. models import (
     MedClass,
     MedicinePresentation,
-    Medicine
+    Medicine,
+    Disease,
+    Treatment
 )
 
 
@@ -45,3 +47,15 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
             return serializers.MedicineSerializer
 
         return self.serializer_class
+
+
+class DiseaseViewSet(BaseNameOnlyPrivateModel):
+    """Manage disease endpoints."""
+    serializer_class = serializers.DiseaseSerializer
+    queryset = Disease.objects.all()
+
+
+class TreatmentViewSet(viewsets.ModelViewSet):
+    """Manage treatments."""
+    serializer_class = serializers.TreatmentSerializer
+    queryset = Treatment.objects.all()

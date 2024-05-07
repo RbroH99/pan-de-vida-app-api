@@ -11,6 +11,8 @@ router = DefaultRouter()
 router.register('medclass', views.MedClassViewSet)
 router.register('medicinepresentation', views.MedicinePresentationViewSet)
 router.register('medicine', views.MedicineViewSet)
+router.register('disease', views.DiseaseViewSet)
+router.register('treatments', views.TreatmentViewSet)
 
 
 app_name = 'medicine'

@@ -7,7 +7,10 @@ from core.utils import measurement_choices
 from core.models import (
     MedClass,
     MedicinePresentation,
-    Medicine
+    Medicine,
+    Disease,
+    Treatment,
+    Patient
 )
 
 
@@ -52,3 +55,29 @@ class MedicineDetailSerializer(MedicineSerializer):
     class Meta(MedicineSerializer.Meta):
         fields = MedicineSerializer.Meta.fields + \
               ['classification', 'batch']
+
+
+class DiseaseSerializer(BasicNameOnlyModelSerializer):
+    """Serializer fr the disease object."""
+
+    class Meta(BasicNameOnlyModelSerializer.Meta):
+        model = Disease
+
+
+class TreatmentSerializer(serializers.ModelSerializer):
+    """Serializer for the treatments."""
+    patient = serializers.PrimaryKeyRelatedField(
+        queryset=Patient.objects.all(),
+        required=True
+    )
+    disease = DiseaseSerializer(required=True)
+    medicines = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Medicine.objects.all(),
+        required=False
+    )
+
+    class Meta:
+        model = Treatment
+        fields = ['id', 'patient', 'disease', 'medicines']
+        read_only_fields = ['id']

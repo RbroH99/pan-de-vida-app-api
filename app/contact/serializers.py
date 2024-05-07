@@ -3,8 +3,9 @@ Serializers for the contact API.
 """
 from rest_framework import serializers
 
+from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.contrib.auth import get_user_model
-
 from django.shortcuts import get_object_or_404
 
 from django_countries.serializers import CountryFieldMixin
@@ -15,14 +16,13 @@ from core.models import (
     PhoneNumber,
     WorkingSite,
     Medic,
-    Donor
+    Donor,
+    Patient,
+    Church
 )
-
 from core.utils import (
     gender_choices
 )
-
-from django.utils.translation import gettext as _
 
 import re
 
@@ -169,3 +169,37 @@ class DonorSerializer(CountryFieldMixin, BaseContactChildrenSerializer):
         model = Donor
         fields = BaseContactChildrenSerializer.Meta.fields + \
             ['country', 'city']
+
+
+class PatientSerializer(BaseContactChildrenSerializer):
+    """Serializer for patient objects."""
+    # Importing inside function to avoid circular import with church serializer
+    code = serializers.SerializerMethodField()
+    inscript = serializers.DateField(required=False, format="%Y-%m-%d")
+    church = serializers.PrimaryKeyRelatedField(
+        queryset=Church.objects.all(),
+        required=True
+    )
+
+
+    class Meta(BaseContactChildrenSerializer.Meta):
+        model = Patient
+        fields = BaseContactChildrenSerializer.Meta.fields + \
+            ['code', 'ci', 'inscript', 'church']
+        read_only_fields = ['id', 'code']
+
+    def get_code(self, obj):
+        return obj.code
+
+    def create(self, validated_data):
+        """Create a new Patient innstance."""
+        inscript = validated_data.pop('inscript', None)
+        if not inscript:
+            inscript = timezone.now().date()
+
+        patient = Patient.objects.create(
+            inscript=inscript,
+            **validated_data
+        )
+
+        return patient

@@ -50,7 +50,7 @@ class ChurchSerializer(BaseNameOnlyModelSerializer):
         queryset=Denomination.objects.all(),
         required=True
     )
-    municipality = MunicipalitySerializer()
+    municipality = MunicipalitySerializer(required=False)
     priest = ContactSerializer(read_only=False, required=False)
     inscript = serializers.DateField(required=False, format="%Y-%m-%d")
 
