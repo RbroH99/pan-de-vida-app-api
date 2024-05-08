@@ -3,6 +3,8 @@ Serializers for the medicine API.
 """
 from rest_framework import serializers
 
+from django.http import JsonResponse
+
 from core.utils import measurement_choices
 from core.models import (
     MedClass,
@@ -70,8 +72,10 @@ class TreatmentSerializer(serializers.ModelSerializer):
         queryset=Patient.objects.all(),
         required=True
     )
-    disease = DiseaseSerializer(required=True)
-    medicines = serializers.PrimaryKeyRelatedField(
+    disease = serializers.PrimaryKeyRelatedField(
+        queryset=Disease.objects.all(),
+        required=True)
+    medicine = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Medicine.objects.all(),
         required=False
@@ -79,5 +83,40 @@ class TreatmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Treatment
-        fields = ['id', 'patient', 'disease', 'medicines']
+        fields = ['id', 'patient', 'disease', 'medicine']
         read_only_fields = ['id']
+
+    def _get_set_medicines(self, medicines, treatment):
+        """Get medicine id list and add it to the treatment."""
+        invalid_meds = []
+        for obj in medicines:
+            try:
+                medicine_id = obj.id
+                medicine_obj = Medicine.objects.get(id=medicine_id)
+                treatment.medicine.add(medicine_obj)
+            except Medicine.DoesNotExist:
+                invalid_meds.append(obj)
+
+        if len(invalid_meds) > 0:
+            return JsonResponse({'ivalid_meds': invalid_meds}, status=200)
+
+    def create(self, validated_data):
+        """Create new treatment instance in the DB."""
+        meds = validated_data.pop('medicine', None)
+        treatment = Treatment.objects.create(**validated_data)
+
+        if meds:
+            self._get_set_medicines(meds, treatment)
+
+        return treatment
+
+    def update(self, instance, validated_data):
+        """Update treatment instances."""
+        meds = validated_data.pop('medicine', None)
+
+        if meds is not None:
+            instance.medicine.clear()
+            self._get_set_medicines(meds, instance)
+
+        instance.save()
+        return instance

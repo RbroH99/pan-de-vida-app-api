@@ -181,7 +181,6 @@ class PatientSerializer(BaseContactChildrenSerializer):
         required=True
     )
 
-
     class Meta(BaseContactChildrenSerializer.Meta):
         model = Patient
         fields = BaseContactChildrenSerializer.Meta.fields + \

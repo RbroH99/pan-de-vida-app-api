@@ -123,8 +123,8 @@ class ModelTests(TestCase):
 
         patient = models.Patient.objects.create(
             contact=contact,
-            ci = "12345678987",
-            church = church,
+            ci="12345678987",
+            church=church,
         )
 
         self.assertEqual(str(patient), f'Patient: {patient.code}')
@@ -139,8 +139,8 @@ class ModelTests(TestCase):
         contact = models.Contact.objects.create(name="Contact for Patient")
         patient = models.Patient.objects.create(
             contact=contact,
-            ci = "12345678987",
-            church = church,
+            ci="12345678987",
+            church=church,
         )
         disease = models.Disease.objects.create(name="Disease for treatment")
 

@@ -55,7 +55,7 @@ class DiseaseViewSet(BaseNameOnlyPrivateModel):
     queryset = Disease.objects.all()
 
 
-class TreatmentViewSet(viewsets.ModelViewSet):
+class TreatmentViewSet(BaseNameOnlyPrivateModel):
     """Manage treatments."""
     serializer_class = serializers.TreatmentSerializer
     queryset = Treatment.objects.all()
