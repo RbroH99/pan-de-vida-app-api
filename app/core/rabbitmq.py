@@ -16,10 +16,18 @@ from asgiref.sync import sync_to_async
 
 def create_user(user_info):
     """Syncronusly creates a new user."""
-    get_user_model().objects.create_user(
-         id=user_info["id"],
-         email=user_info["email"]
-    )
+    superuser = user_info.pop('is_superuser', None)
+    if not superuser:
+        get_user_model().objects.create_user(
+             id=user_info["id"],
+             email=user_info["email"]
+        )
+    else:
+        get_user_model().objects.create_superuser(
+            id=user_info["id"],
+             email=user_info["email"],
+             password=user_info["password"]
+        )
 
 
 create_user_async = sync_to_async(
@@ -38,8 +46,8 @@ async def start_consuming():
         async for message in queue_iter:
             async with message.process():
                 user_info = message.body.decode()
-                print(f" MAIN API Received {user_info['email']}.")
                 user_info = json.loads(user_info)
+                print(f" MAIN API Received {user_info['email']}.")
                 await create_user_async(user_info)
                 print(f" User {user_info['email']} created")
 
