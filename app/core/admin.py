@@ -39,6 +39,12 @@ class UserAdmin(BaseUserAdmin):
             )
         }),
     )
+    def has_change_permission(self, request, obj=None):
+        """
+        Override original method and return False, preventing admin users
+        on change passwords through Main API.
+        """
+        return False
 
 
 admin.site.register(models.UserProfile, UserAdmin)
