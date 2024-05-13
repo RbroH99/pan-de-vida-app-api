@@ -39,6 +39,7 @@ class UserAdmin(BaseUserAdmin):
             )
         }),
     )
+
     def has_change_permission(self, request, obj=None):
         """
         Override original method and return False, preventing admin users

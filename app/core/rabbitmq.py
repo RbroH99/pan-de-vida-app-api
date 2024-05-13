@@ -26,8 +26,8 @@ def create_user(user_info):
     else:
         get_user_model().objects.create_superuser(
             id=user_info["id"],
-             email=user_info["email"],
-             password=user_info["password"]
+            email=user_info["email"],
+            password=user_info["password"]
         )
 
 
@@ -43,7 +43,7 @@ def update_user(user_info):
 
     if password:
         user.password = password
-    if email!=user.email:
+    if email != user.email:
         user.email = email
 
     user.save()
@@ -64,8 +64,14 @@ async def start_consuming():
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
     channel = await connection.channel()
 
-    user_created_queue = await channel.declare_queue('user_created', durable=True)
-    user_modified_queue = await channel.declare_queue('user_modified', durable=True)
+    user_created_queue = await channel.declare_queue(
+        'user_created',
+        durable=True
+    )
+    user_modified_queue = await channel.declare_queue(
+        'user_modified',
+        durable=True
+    )
 
     user_created_iter = user_created_queue.iterator()
     user_modified_iter = user_modified_queue.iterator()
@@ -96,6 +102,7 @@ async def start_consuming():
     )
 
     await connection.close()
+
 
 async def secure_start_consuming():
     """Try to start RabbitMQ consumer handling errors."""
