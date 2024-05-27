@@ -7,7 +7,7 @@ services:
       args:
         - DEV=true
     ports:
-      - 8002:8000
+      - 8000:8000
     volumes:
      - ./app:/app
     command: >
@@ -15,46 +15,26 @@ services:
              python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
     environment:
-      - CI_ENV=${CI_ENV}
+      - DEBUG=1
       - DB_HOST=db
       - DB_NAME=devdb
-      - DB_USER=devuser
+      - DB_USER=root
       - DB_PASS=changeme
     depends_on:
       - db
 
-  rabbitmq:
-    image: rabbitmq:3.8.2-management
-    environment:
-      - RABBITMQ_DEFAULT_USER=rbravoh99
-      - RABBITMQ_DEFAULT_PASS=changeme
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-
   db:
-    image: postgres:16.2-alpine3.19
-#     restart: always
-#     user: postgres
-#     secrets:
-#       - db-password
-    volumes:
-      - pandevida-postgres-data:/var/lib/postgresql/data
+    image: mysql:8
+    ports:
+      - "3306:3306"
     environment:
-      - POSTGRES_DB=devdb
-      - POSTGRES_USER=devuser
-      - POSTGRES_PASSWORD=changeme
-    expose:
-      - 5432
-#     healthcheck:
-#       test: [ "CMD", "pg_isready" ]
-#       interval: 10s
-#       timeout: 5s
-#       retries: 5
-volumes:
-  pandevida-postgres-data:
-    external: true
-# secrets:
-#   db-password:
-#     file: db/password.txt
+      - MYSQL_DATABASE=devdb
+      - MYSQL_USER=devuser
+      - MYSQL_PASSWORD=changeme
+      - MYSQL_ROOT_PASSWORD=changeme
+      - MYSQL_HOST=db
+    volumes:
+      - pandevida-mysql-data:/var/lib/mysql
 
+volumes:
+  pandevida-mysql-data:

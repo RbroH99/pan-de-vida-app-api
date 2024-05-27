@@ -10,8 +10,9 @@ from core import models
 
 class UserAdmin(BaseUserAdmin):
     """Define the admin pages for users."""
+    model = models.User
     ordering = ['id']
-    list_display = ['email']
+    list_display = ['email', 'name']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         (
@@ -26,13 +27,15 @@ class UserAdmin(BaseUserAdmin):
         ),
         (_('Important dates'), {'fields': ('last_login',)}),
     )
-    readonly_fields = ['last_login', 'email']
+    readonly_fields = ['last_login']
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
             'fields': (
+                'email',
                 'password1',
                 'password2',
+                'name',
                 'is_active',
                 'is_staff',
                 'is_superuser',
@@ -40,15 +43,23 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
-    def has_change_permission(self, request, obj=None):
-        """
-        Override original method and return False, preventing admin users
-        on change passwords through Main API.
-        """
-        return False
+    def save_form(self, request, form, change):
+        if form.cleaned_data.get('is_superuser'):
+            form.instance = self.model.objects.create_superuser(
+                email=form.cleaned_data['email'],
+                password=form.cleaned_data['password1'],
+                name=form.cleaned_data['name'],
+            )
+        else:
+            form.instance = self.model.objects.create_user(
+                email=form.cleaned_data['email'],
+                password=form.cleaned_data['password1'],
+                name=form.cleaned_data['name'],
+            )
+        return super().save_form(request, form, change)
 
 
-admin.site.register(models.UserProfile, UserAdmin)
+admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Denomination)
 admin.site.register(models.MedClass)
 admin.site.register(models.MedicinePresentation)

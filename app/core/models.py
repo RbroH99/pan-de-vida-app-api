@@ -23,47 +23,45 @@ from .utils import (
 class UserManager(BaseUserManager):
     """Manager for the users."""
 
-    def create_user(self, id, email, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
         """Create, save and return a new user."""
         if not email:
             raise ValueError('User must have an email!.')
-        if not id:
-            raise ValueError('User must have an id!.')
         email = self.normalize_email(email)
-        user = self.model(id=id, email=email, **extra_fields)
+        user = self.model(email=email, **extra_fields)
+
+        user.set_password(password)
         user.save(using=self._db)
 
         return user
 
-    def create_superuser(self, id, email, password):
+    def create_superuser(self, email, password):
         """Create superuser with given details."""
-        if not email:
-            raise ValueError('User must have an email!.')
-        if not id:
-            raise ValueError('User must have an id!.')
-        user = self.model(id=id, email=email)
-        user.password = password
+        user = self.model(email=email)
+
         user.is_superuser = True
         user.is_staff = True
+        user.set_password(password)
         user.save(using=self._db)
 
         return user
 
 
-class UserProfile(AbstractBaseUser, PermissionsMixin):
-    """User in the API"""
-    id = models.IntegerField(primary_key=True)
-    email = models.EmailField(unique=True)
+class User(AbstractBaseUser, PermissionsMixin):
+    """User in the system."""
+    email = models.EmailField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
-
     objects = UserManager()
 
+    USERNAME_FIELD = 'email'
+
     def __str__(self):
+        """Returns the user string representation."""
         return self.email
+
 # --------------------------------------------------------------------
 
 
@@ -278,7 +276,7 @@ class Patient(models.Model):
 # CHURCH APP RELATED MODELS
 class Municipality(models.Model):
     """Municipality of given provinces."""
-    name = models.CharField()
+    name = models.CharField(max_length=60)
     province = models.CharField(
         max_length=3,
         choices=PROVINCES_CUBA,

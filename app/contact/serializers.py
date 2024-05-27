@@ -43,7 +43,7 @@ class ContactSerializer(serializers.ModelSerializer):
         many=False,
         required=False
         )
-    note = NoteSerializer(many=True, required=False)
+    note = NoteSerializer(many=False, required=False)
     gender = serializers.ChoiceField(choices=gender_choices,
                                      default='-')
 

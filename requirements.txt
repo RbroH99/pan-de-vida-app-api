@@ -8,5 +8,7 @@ markdown>3.0.0,<3.1.0
 Pygments>=2.4.0,<2.5.
 Pillow>=10.2.0,<10.3
 djangorestframework-simplejwt>=5.3.1,<5.4
-psycopg2==2.9.9
 aio-pika>=9.4.1,<9.5
+python-dotenv>=1.0.1,<1.1
+mysqlclient>=2.2.4,<2.3
+django-cors-headers>=4.3.1,<4.4
