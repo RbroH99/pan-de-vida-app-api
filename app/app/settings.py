@@ -15,25 +15,20 @@ from datetime import timedelta
 
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(dotenv_path=BASE_DIR.parent.as_posix() + ".env")
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'changeme')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =  bool(int(os.environ.get('DEBUG', 0)))
+#DEBUG =  bool(int(os.environ.get('DEBUG', 0)))
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['rbravoh99.pythonanywhere.com']
 ALLOWED_HOSTS.extend(
     filter(
         None,
@@ -99,10 +94,10 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'HOST': os.environ.get('DB_HOST'),
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASS'),
+        'NAME': 'Rbravoh99$pandevida',
+        'USER': 'Rbravoh99',
+        'PASSWORD': 'pandevidaMySQL',
+        'HOST': 'Rbravoh99.mysql.pythonanywhere-services.com',
     }
 }
 
@@ -141,8 +136,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/static/'
-MEDIA_URL = '/static/media/'
+# settings.py
+
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 
 # Default primary key field type
@@ -152,7 +153,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'core.User'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+    'rbravoh99.pythonanywhere.com'
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -164,6 +171,11 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'SIGNING_KEY': 'changeme',
     'ALGORITHM': 'HS256',
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+SPECTACULAR_SETTINGS = {
+    'COMPONENT_SPLIT_REQUEST': True,
+}
+

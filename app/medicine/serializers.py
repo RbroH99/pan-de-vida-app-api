@@ -40,6 +40,7 @@ class MedicinePresentationSerializer(serializers.ModelSerializer):
 
 class MedicineSerializer(BasicNameOnlyModelSerializer):
     """Serializer for medicine endpoints."""
+    classification = MedClassSerializer(many=False, required=False)
     presentation = MedicinePresentationSerializer(many=False, required=False)
     measurement_units = serializers.ChoiceField(choices=measurement_choices,
                                                 default='-')
@@ -47,16 +48,16 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
     class Meta(BasicNameOnlyModelSerializer.Meta):
         model = Medicine
         fields = BasicNameOnlyModelSerializer.Meta.fields + \
-            ['presentation', 'measurement', 'measurement_units']
+            ['presentation', 'classification', 'measurement', 'measurement_units']
 
 
 class MedicineDetailSerializer(MedicineSerializer):
     """Detail endpoint for medicine instances."""
-    classification = MedClassSerializer(many=False, required=False)
+
 
     class Meta(MedicineSerializer.Meta):
         fields = MedicineSerializer.Meta.fields + \
-              ['classification', 'batch']
+              [ 'batch']
 
 
 class DiseaseSerializer(BasicNameOnlyModelSerializer):
