@@ -31,7 +31,7 @@ DEBUG = True
 if DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
-    ALLOWED_HOSTS = ['rbravoh99.pythonanywhere.com', '127.0.0.1:8000']
+    ALLOWED_HOSTS = ['rbravoh99.pythonanywhere.com']
     ALLOWED_HOSTS.extend(
         filter(
             None,
