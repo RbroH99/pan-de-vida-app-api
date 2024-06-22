@@ -42,10 +42,10 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name='api-schema'),
         name='redoc'
     ),
-    path('api/medicine/', include('medicine.urls')),
-    path('api/contact/', include('contact.urls')),
-    path('api/church/', include('church.urls')),
-    path('api/user/', include('user.urls')),
+    path('medicine/', include('medicine.urls')),
+    path('contact/', include('contact.urls')),
+    path('church/', include('church.urls')),
+    path('user/', include('user.urls')),
     path(
         'api/token/',
         TokenObtainPairView.as_view(),

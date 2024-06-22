@@ -26,15 +26,18 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'changeme')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG =  bool(int(os.environ.get('DEBUG', 0)))
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['rbravoh99.pythonanywhere.com']
-ALLOWED_HOSTS.extend(
-    filter(
-        None,
-        os.environ.get('ALLOWED_HOSTS', '').split(','),
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = ['rbravoh99.pythonanywhere.com', '127.0.0.1:8000']
+    ALLOWED_HOSTS.extend(
+        filter(
+            None,
+            os.environ.get('ALLOWED_HOSTS', '').split(','),
+        )
     )
-)
 
 # Application definition
 
@@ -90,16 +93,23 @@ WSGI_APPLICATION = 'app.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
+if DEBUG:
+    DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Rbravoh99$pandevida',
-        'USER': 'Rbravoh99',
-        'PASSWORD': 'pandevidaMySQL',
-        'HOST': 'Rbravoh99.mysql.pythonanywhere-services.com',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'Rbravoh99$pandevida',
+            'USER': 'Rbravoh99',
+            'PASSWORD': 'pandevidaMySQL',
+            'HOST': 'Rbravoh99.mysql.pythonanywhere-services.com',
+        }
+    }
 
 
 # Password validation
@@ -155,7 +165,7 @@ AUTH_USER_MODEL = 'core.User'
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
-    'rbravoh99.pythonanywhere.com'
+    'https://rbravoh99.pythonanywhere.com',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -165,7 +175,8 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
 }
 
 SIMPLE_JWT = {
