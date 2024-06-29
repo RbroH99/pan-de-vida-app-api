@@ -3,6 +3,7 @@ Utils needed in the core app.
 """
 from django.utils.translation import gettext as _
 
+from rest_framework import serializers
 
 measurement_choices = (
     ('mL', _('Milliliters')),
@@ -42,3 +43,13 @@ PROVINCES_CUBA = (
     ('IJV', 'Isla de la Juventud'),
     ('UNK', _('UNKNOWN'))
 )
+
+
+def name_validator(model_ref, name):
+    names_list = model_ref.objects.all().values("name")
+    if name in names_list:
+        raise serializers.ValidationError(
+            (f"Name already exists in the DB."),
+            code='unique'
+        )
+    return name

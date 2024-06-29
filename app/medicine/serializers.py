@@ -4,8 +4,12 @@ Serializers for the medicine API.
 from rest_framework import serializers
 
 from django.http import JsonResponse
+from django.utils.translation import gettext as _
 
-from core.utils import measurement_choices
+from core.utils import (
+    measurement_choices,
+    name_validator
+)
 from core.models import (
     MedClass,
     MedicinePresentation,
@@ -30,12 +34,33 @@ class MedClassSerializer(BasicNameOnlyModelSerializer):
     class Meta(BasicNameOnlyModelSerializer.Meta):
         model = MedClass
 
+    def validate_name(self, name):
+        return name_validator(MedClass, name)
+
+    def create(self, validated_data):
+        name = validated_data.pop("name", None)
+
+        classification = MedClass.objects.create(name=name)
+
+        return classification
+
 
 class MedicinePresentationSerializer(serializers.ModelSerializer):
     """Serializer fo the medclass endpoints."""
 
     class Meta(BasicNameOnlyModelSerializer.Meta):
         model = MedicinePresentation
+
+    def validate_name(self, name):
+        return name_validator(MedicinePresentation, name)
+
+    def create(self, validated_data):
+        name = validated_data.pop("name", None)
+
+        presentation = MedicinePresentation.objects.create(name=name)
+
+        return presentation
+
 
 
 class MedicineSerializer(BasicNameOnlyModelSerializer):
@@ -50,14 +75,28 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
         fields = BasicNameOnlyModelSerializer.Meta.fields + \
             ['presentation', 'classification', 'measurement', 'measurement_units']
 
+    def update(self, instance, validated_data):
+        validated_data.pop("id", None)
+        classification_data = validated_data.pop('classification', None)
+        presentation_data = validated_data.pop('presentation', None)
 
-class MedicineDetailSerializer(MedicineSerializer):
-    """Detail endpoint for medicine instances."""
+        if classification_data:
+            classification, _ = MedClass.objects.get_or_create(classification_data['name'])
+            instance.classification = classification
 
+        if presentation_data:
+            presentation, _ = MedicinePresentation.objects.get_or_create()
+            instance.presentation = presentation
 
-    class Meta(MedicineSerializer.Meta):
-        fields = MedicineSerializer.Meta.fields + \
-              [ 'batch']
+        instance.name = validated_data.get("name", instance.name)
+        instance.measurement = validated_data.get("measurement",
+                                                  instance.measurement)
+        instance.measurement_units = validated_data.\
+            get("measurement_units", instance.measurement_units)
+
+        instance.save()
+
+        return instance
 
 
 class DiseaseSerializer(BasicNameOnlyModelSerializer):

@@ -69,7 +69,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 class MedClass(models.Model):
     """Medicine classification model."""
     name = models.CharField(max_length=60,
-                            unique=True,
                             null=False,
                             blank=False)
 
@@ -80,7 +79,6 @@ class MedClass(models.Model):
 class MedicinePresentation(models.Model):
     """Medicine presentation model."""
     name = models.CharField(max_length=60,
-                            unique=True,
                             null=False,
                             blank=False)
 
@@ -104,7 +102,6 @@ class Medicine(models.Model):
                                      blank=True,
                                      on_delete=models.SET_NULL
                                      )
-    batch = models.CharField(max_length=30, blank=True, null=True)
     measurement = models.DecimalField(max_digits=5,
                                       decimal_places=2,
                                       null=True,
@@ -114,9 +111,10 @@ class Medicine(models.Model):
                                          choices=measurement_choices,
                                          default='-'
                                          )
+    quantity = models.IntegerField(null=False, blank=False, default=0)
 
     def __str__(self) -> str:
-        return f'Name: {self.name}, Batch: {self.batch}'
+        return f'Name: {self.name}, Quantity: {self.quantity}'
 
 
 class Disease(models.Model):

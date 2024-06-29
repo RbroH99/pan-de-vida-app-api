@@ -10,6 +10,8 @@ from rest_framework.test import APIClient
 
 from core.models import (
     Medicine,
+    MedClass,
+    MedicinePresentation,
 )
 
 from medicine.serializers import MedicineSerializer
@@ -48,7 +50,6 @@ class PublicMedicineAPITests(TestCase):
         """Test anonymously create a medicine instance fails."""
         payload = {
             "name": "Dipirone",
-            "batch": "72T4532"
         }
         res = self.client.post(MEDICINE_URL, payload, format='json')
 
@@ -61,7 +62,6 @@ class PublicMedicineAPITests(TestCase):
 
         payload = {
             "name": "Dipirone",
-            "batch": "35E21"
         }
         url = detail_url(medicine.id)
         res = self.client.patch(url, payload, format='json')
@@ -69,7 +69,6 @@ class PublicMedicineAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
         medicine.refresh_from_db()
         self.assertNotEqual(medicine.name, payload["name"])
-        self.assertIsNone(medicine.batch)
 
 
 class PrivateMedicineAPITests(TestCase):
@@ -87,7 +86,6 @@ class PrivateMedicineAPITests(TestCase):
         """Test staff user creating medicine instance success."""
         payload = {
             "name": "Dipirone",
-            "batch": "7T43E2"
         }
         res = self.client.post(MEDICINE_URL, payload, format='json')
 
@@ -128,3 +126,81 @@ class PrivateMedicineAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         medicine.refresh_from_db()
         self.assertEqual(medicine.name, payload["name"])
+
+    def test_create_medicine_with_existing_classification_name(self):
+        """Test existing classification is associated to medicine instance."""
+        classification = MedClass.objects.create(name="Test classif")
+
+        classification_dict = {
+            "name": classification.name
+        }
+
+        payload = {
+            "name": "Medicine Name",
+            "classification": classification_dict,
+        }
+
+        res = self.client.post(MEDICINE_URL, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            classification.name, res.data["classification"]["name"]
+        )
+
+    def test_create_medicine_with_non_existing_classification_name(self):
+        """Test new classification created on medicine creation."""
+
+        classification_dict = {
+            "name": "Non existing"
+        }
+
+        payload = {
+            "name": "Medicine Name",
+            "classification": classification_dict,
+        }
+
+        res = self.client.post(MEDICINE_URL, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            classification_dict["name"], res.data["classification"]["name"]
+        )
+
+    def test_create_medicine_with_existing_presentation_name(self):
+        """Test existing classification is associated to medicine instance."""
+        presentation = MedicinePresentation.objects.create(name="Test present")
+
+        presentation_dict = {
+            "name": presentation.name
+        }
+
+        payload = {
+            "name": "Medicine Name",
+            "presentation": presentation_dict,
+        }
+
+        res = self.client.post(MEDICINE_URL, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            presentation.name, res.data["presentation"]["name"]
+        )
+
+    def test_create_medicine_with_non_existing_presentation_name(self):
+        """Test new presentation created on medicine creation."""
+
+        presentation_dict = {
+            "name": "Non existing"
+        }
+
+        payload = {
+            "name": "Medicine Name",
+            "presentation": presentation_dict,
+        }
+
+        res = self.client.post(MEDICINE_URL, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            presentation_dict["name"], res.data["presentation"]["name"]
+        )
