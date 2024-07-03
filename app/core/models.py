@@ -118,7 +118,7 @@ class Medicine(models.Model):
 
 
 class Disease(models.Model):
-    """Diseases pacients suffer."""
+    """Diseases donees suffer."""
     name = models.CharField(max_length=80,
                             blank=False,
                             null=False)
@@ -128,8 +128,8 @@ class Disease(models.Model):
 
 
 class Treatment(models.Model):
-    """Medic treatment for pacient-illnesses."""
-    patient = models.ForeignKey('Patient',
+    """Medic treatment for donees-illnesses."""
+    donee = models.ForeignKey('Donee',
                                 blank=False,
                                 null=False,
                                 on_delete=models.CASCADE)
@@ -141,7 +141,7 @@ class Treatment(models.Model):
                                       blank=True)
 
     def __str__(self) -> str:
-        return f'{str(self.patient)}, {self.disease.name}'
+        return f'{str(self.donee)}, {self.disease.name}'
 # -----------------------------------------------------------------------
 
 
@@ -229,8 +229,8 @@ class Donor(models.Model):
         return f'{self.contact.name}: {self.city}'
 
 
-class Patient(models.Model):
-    """Patients in the system."""
+class Donee(models.Model):
+    """Donees in the system."""
     code = models.CharField(max_length=12, unique=True, editable=False)
     contact = models.OneToOneField(Contact,
                                    null=False,
@@ -248,12 +248,12 @@ class Patient(models.Model):
 
     def generate_code(self):
         """Generate unique code for pacient from church id."""
-        last_patient = \
-            Patient.objects.filter(church=self.church)\
+        last_donee = \
+            Donee.objects.filter(church=self.church)\
             .order_by('-code').first()
-        if last_patient:
+        if last_donee:
             try:
-                last_specific_id = str(last_patient.code).split('-')[-1]
+                last_specific_id = str(last_donee.code).split('-')[-1]
                 code = f'{self.church.id}-{int(last_specific_id) + 1}'
             except (ValueError, IndexError):
                 code = f'{self.church.id}-1'
@@ -267,7 +267,7 @@ class Patient(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f'Patient: {self.code}'
+        return f'Donee: {self.code}'
 # -----------------------------------------------------------------------
 
 

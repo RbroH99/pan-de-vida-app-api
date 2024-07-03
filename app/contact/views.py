@@ -3,9 +3,12 @@ Viewsets for the contact APP.
 """
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import (
     viewsets,
+    status,
 )
 
 from contact import serializers
@@ -17,8 +20,10 @@ from core.models import (
     WorkingSite,
     Medic,
     Donor,
-    Patient
+    Donee
 )
+
+from core.utils import gender_choices
 
 
 class BasePrivateViewSet(viewsets.ModelViewSet):
@@ -37,6 +42,20 @@ class ContactViewSet(BasePrivateViewSet):
     """Viewset for the Contact endpoints."""
     queryset = Contact.objects.all()
     serializer_class = serializers.ContactSerializer
+
+class GenderOptionsView(APIView):
+    """View to get gender options. """
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    #The first option always is the not set option.
+
+    def get(self, request, format=None):
+        gender_options = [
+            {'label': choice[1], 'value': choice[0]}
+            for choice in gender_choices
+        ]
+        return Response(gender_options, status=status.HTTP_200_OK)
 
 
 class PhoneNumberViewSet(BasePrivateViewSet):
@@ -63,7 +82,7 @@ class DonorViewSet(BasePrivateViewSet):
     serializer_class = serializers.DonorSerializer
 
 
-class PatientViewSet(BasePrivateViewSet):
-    """Views for the patient api."""
-    queryset = Patient.objects.all()
-    serializer_class = serializers.PatientSerializer
+class DoneeViewSet(BasePrivateViewSet):
+    """Views for the donee api."""
+    queryset = Donee.objects.all()
+    serializer_class = serializers.DoneeSerializer

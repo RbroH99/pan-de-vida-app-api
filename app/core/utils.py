@@ -18,9 +18,9 @@ measurement_choices = (
 
 
 gender_choices = (
+    ('-', _('Other or not set')),
     ('M', _('Male')),
-    ('F', _('Female')),
-    ('-', _('Other or not set'))
+    ('F', _('Female'))
 )
 
 

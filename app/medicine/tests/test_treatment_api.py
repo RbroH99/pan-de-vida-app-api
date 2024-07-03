@@ -12,7 +12,7 @@ from core.models import (
     Treatment,
     Disease,
     Medicine,
-    Patient,
+    Donee,
     Denomination,
     Contact,
     Church
@@ -28,7 +28,7 @@ class PublicTreatmentAPITest(TestCase):
     def setUp(self):
         """Set up the test environment for unauthenticated users."""
         self.client = APIClient()
-        self.patient = Patient.objects.create(
+        self.donee = Donee.objects.create(
             contact=Contact.objects.create(name="John Doe"),
             ci="12345678901",
             church=Church.objects.create(
@@ -41,7 +41,7 @@ class PublicTreatmentAPITest(TestCase):
         self.disease = Disease.objects.create(name="Disease Name")
         self.medicine = Medicine.objects.create(name="Medicine Name")
         self.treatment_data = {
-            'patient': self.patient.id,
+            'donee': self.donee.id,
             'disease': self.disease.id,
             'medicine': [self.medicine.id]
         }
@@ -60,7 +60,7 @@ class PublicTreatmentAPITest(TestCase):
 
     def test_detail_treatment_unauthenticated(self):
         """Test unauthenticated cannot access the details of a treatment."""
-        treatment = Treatment.objects.create(patient=self.patient,
+        treatment = Treatment.objects.create(donee=self.donee,
                                              disease=self.disease)
         treatment.medicine.add(self.medicine)
         url = reverse('medicine:treatment-detail', args=[treatment.id])
@@ -69,7 +69,7 @@ class PublicTreatmentAPITest(TestCase):
 
     def test_update_treatment_unauthenticated(self):
         """Test unauthenticated cannot update a treatment."""
-        treatment = Treatment.objects.create(patient=self.patient,
+        treatment = Treatment.objects.create(donee=self.donee,
                                              disease=self.disease)
         treatment.medicine.add(self.medicine)
         new_medicine = Medicine.objects.create(name="New Medicine")
@@ -81,7 +81,7 @@ class PublicTreatmentAPITest(TestCase):
 
     def test_delete_treatment_unauthenticated(self):
         """Test unauthenticated cannot delete a treatment."""
-        treatment = Treatment.objects.create(patient=self.patient,
+        treatment = Treatment.objects.create(donee=self.donee,
                                              disease=self.disease)
         treatment.medicine.add(self.medicine)
         url = reverse('medicine:treatment-detail', args=[treatment.id])
@@ -101,7 +101,7 @@ class PrivateTreatmentAPITest(TestCase):
             password='testpass'
         )
         self.client.force_authenticate(user=self.user)
-        self.patient = Patient.objects.create(
+        self.donee = Donee.objects.create(
             contact=Contact.objects.create(name="Jane Doe"),
             ci="12345678902",
             church=Church.objects.create(
@@ -113,7 +113,7 @@ class PrivateTreatmentAPITest(TestCase):
         self.disease = Disease.objects.create(name="Disease Name")
         self.medicine = Medicine.objects.create(name="Medicine Name")
         self.treatment_data = {
-            'patient': self.patient.id,
+            'donee': self.donee.id,
             'disease': self.disease.id,
             'medicine': [self.medicine.id]
         }
@@ -133,7 +133,7 @@ class PrivateTreatmentAPITest(TestCase):
 
     def test_detail_treatment_authenticated(self):
         """Test authenticated users can access the details of a treatment."""
-        treatment = Treatment.objects.create(patient=self.patient,
+        treatment = Treatment.objects.create(donee=self.donee,
                                              disease=self.disease)
         treatment.medicine.add(self.medicine)
         url = reverse('medicine:treatment-detail', args=[treatment.id])
@@ -142,7 +142,7 @@ class PrivateTreatmentAPITest(TestCase):
 
     def test_update_treatment_authenticated(self):
         """Test that authenticated users can update a treatment."""
-        treatment = Treatment.objects.create(patient=self.patient,
+        treatment = Treatment.objects.create(donee=self.donee,
                                              disease=self.disease)
         treatment.medicine.add(self.medicine)
         new_medicine = Medicine.objects.create(name="New Medicine")
@@ -154,7 +154,7 @@ class PrivateTreatmentAPITest(TestCase):
 
     def test_delete_treatment_authenticated(self):
         """Test that authenticated users can delete a treatment."""
-        treatment = Treatment.objects.create(patient=self.patient,
+        treatment = Treatment.objects.create(donee=self.donee,
                                              disease=self.disease)
         treatment.medicine.add(self.medicine)
         url = reverse('medicine:treatment-detail', args=[treatment.id])

@@ -16,7 +16,7 @@ from core.models import (
     Medicine,
     Disease,
     Treatment,
-    Patient
+    Donee
 )
 
 
@@ -108,8 +108,8 @@ class DiseaseSerializer(BasicNameOnlyModelSerializer):
 
 class TreatmentSerializer(serializers.ModelSerializer):
     """Serializer for the treatments."""
-    patient = serializers.PrimaryKeyRelatedField(
-        queryset=Patient.objects.all(),
+    donee = serializers.PrimaryKeyRelatedField(
+        queryset=Donee.objects.all(),
         required=True
     )
     disease = serializers.PrimaryKeyRelatedField(
@@ -123,7 +123,7 @@ class TreatmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Treatment
-        fields = ['id', 'patient', 'disease', 'medicine']
+        fields = ['id', 'donee', 'disease', 'medicine']
         read_only_fields = ['id']
 
     def _get_set_medicines(self, medicines, treatment):

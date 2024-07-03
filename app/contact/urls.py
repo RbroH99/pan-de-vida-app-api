@@ -14,7 +14,7 @@ router.register('phone_numbers', views.PhoneNumberViewSet)
 router.register('working_sites', views.WorkingSiteViewSet)
 router.register('medics', views.MedicViewSet)
 router.register('donors', views.DonorViewSet)
-router.register('patients', views.PatientViewSet)
+router.register('donees', views.DoneeViewSet)
 
 
 app_name = 'contact'
@@ -22,4 +22,5 @@ app_name = 'contact'
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('gender-choices/', views.GenderOptionsView.as_view(), name='gender-choices'),
 ]

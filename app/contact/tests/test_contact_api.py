@@ -9,9 +9,13 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core.models import Contact
+from core.utils import gender_choices
 
 
 CONTACTS_URL = reverse('contact:contact-list')
+
+
+GENDER_CHOICES_URL = reverse('contact:gender-choices')
 
 
 def detail_url(contact_id):
@@ -125,3 +129,15 @@ class PrivateContactAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
         self.assertNotIn(contact, Contact.objects.all())
+
+    def test_gender_choices_api_view(self):
+        """Test contact gender choices retrieve endpoint."""
+
+        res = self.client.get(GENDER_CHOICES_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        expected_data = [
+            {'label': choice[1], 'value': choice[0]}
+            for choice in gender_choices
+        ]
+        self.assertListEqual(res.data, expected_data)

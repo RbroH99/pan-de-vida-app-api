@@ -37,7 +37,7 @@ class ModelTests(TestCase):
         medicine = models.Medicine.objects.create(name="Aspirina")
 
         self.assertEqual(str(medicine),
-                         f'Name: {medicine.name}, Batch: {medicine.batch}')
+                         f'Name: {medicine.name}, Quantity: {medicine.quantity}')
 
     def test_create_contact(self):
         """Test creating contact object in the DB."""
@@ -112,32 +112,32 @@ class ModelTests(TestCase):
 
         self.assertEqual(str(disease), disease.name)
 
-    def test_create_patient(self):
-        """Test creating a patient in the system."""
+    def test_create_donee(self):
+        """Test creating a donee in the system."""
         denomination = models.Denomination.objects.create(name="Metodista")
         priest = models.Contact.objects.create(name='Pastor')
         church = models.Church.objects.create(name="Iglesia",
                                               denomination=denomination,
                                               priest=priest)
-        contact = models.Contact.objects.create(name="Contact for Patient")
+        contact = models.Contact.objects.create(name="Contact for Donee")
 
-        patient = models.Patient.objects.create(
+        donee = models.Donee.objects.create(
             contact=contact,
             ci="12345678987",
             church=church,
         )
 
-        self.assertEqual(str(patient), f'Patient: {patient.code}')
+        self.assertEqual(str(donee), f'Donee: {donee.code}')
 
     def test_create_treatment(self):
-        """Test create treatment for a patient."""
+        """Test create treatment for a donee."""
         denomination = models.Denomination.objects.create(name="Metodista")
         priest = models.Contact.objects.create(name='Pastor')
         church = models.Church.objects.create(name="Iglesia",
                                               denomination=denomination,
                                               priest=priest)
-        contact = models.Contact.objects.create(name="Contact for Patient")
-        patient = models.Patient.objects.create(
+        contact = models.Contact.objects.create(name="Contact for Donee")
+        donee = models.Donee.objects.create(
             contact=contact,
             ci="12345678987",
             church=church,
@@ -145,8 +145,8 @@ class ModelTests(TestCase):
         disease = models.Disease.objects.create(name="Disease for treatment")
 
         treatment = models.Treatment.objects.create(
-            patient=patient,
+            donee=donee,
             disease=disease,
         )
 
-        self.assertEqual(str(treatment), f'{str(patient)}, {disease.name}')
+        self.assertEqual(str(treatment), f'{str(donee)}, {disease.name}')

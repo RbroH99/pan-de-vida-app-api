@@ -17,7 +17,7 @@ from core.models import (
     WorkingSite,
     Medic,
     Donor,
-    Patient,
+    Donee,
     Church
 )
 from core.utils import (
@@ -171,8 +171,8 @@ class DonorSerializer(CountryFieldMixin, BaseContactChildrenSerializer):
             ['country', 'city']
 
 
-class PatientSerializer(BaseContactChildrenSerializer):
-    """Serializer for patient objects."""
+class DoneeSerializer(BaseContactChildrenSerializer):
+    """Serializer for donee objects."""
     # Importing inside function to avoid circular import with church serializer
     code = serializers.SerializerMethodField()
     inscript = serializers.DateField(required=False, format="%Y-%m-%d")
@@ -182,7 +182,7 @@ class PatientSerializer(BaseContactChildrenSerializer):
     )
 
     class Meta(BaseContactChildrenSerializer.Meta):
-        model = Patient
+        model = Donee
         fields = BaseContactChildrenSerializer.Meta.fields + \
             ['code', 'ci', 'inscript', 'church']
         read_only_fields = ['id', 'code']
@@ -191,14 +191,14 @@ class PatientSerializer(BaseContactChildrenSerializer):
         return obj.code
 
     def create(self, validated_data):
-        """Create a new Patient innstance."""
+        """Create a new Donee innstance."""
         inscript = validated_data.pop('inscript', None)
         if not inscript:
             inscript = timezone.now().date()
 
-        patient = Patient.objects.create(
+        donee = Donee.objects.create(
             inscript=inscript,
             **validated_data
         )
 
-        return patient
+        return donee
