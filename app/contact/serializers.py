@@ -192,6 +192,10 @@ class DoneeDetailSerializer(DoneeSerializer):
         required=True
     )
 
+    def get_code(self, obj):
+        return obj.code
+
+
     class Meta(BaseContactChildrenSerializer.Meta):
         model = Donee
         fields = BaseContactChildrenSerializer.Meta.fields + \
