@@ -86,3 +86,12 @@ class DoneeViewSet(BasePrivateViewSet):
     """Views for the donee api."""
     queryset = Donee.objects.all()
     serializer_class = serializers.DoneeSerializer
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+
+        for item in response.data:
+            item['church'] = {"id":item['church'].id,
+                              "name": item['church'].name,}
+
+        return response
