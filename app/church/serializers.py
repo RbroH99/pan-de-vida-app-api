@@ -36,6 +36,9 @@ class MunicipalitySerializer(BaseNameOnlyModelSerializer):
         model = Municipality
         fields = BaseNameOnlyModelSerializer.Meta.fields + ['province']
 
+    def get_province(self, obj):
+        return obj.get_province_display()
+
 
 class DenominationSerializer(BaseNameOnlyModelSerializer):
     """Serializer for the denomination objects."""

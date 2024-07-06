@@ -116,12 +116,19 @@ class PrivateDoneeAPITest(TestCase):
             password='testpass'
         )
         self.client.force_authenticate(user=self.user)
+        self.contact = Contact.objects.create(name="John")
         denomination = Denomination.objects.create(name="Church Denomination")
-        church = Church.objects.create(name="Churc", denomination=denomination)
+        self.church = Church.objects.create(
+            name="Church",
+            denomination=denomination,
+            municipality=Municipality.objects.create(
+                name="Municipality Name",
+                province="PRI"),
+        )
         self.donee_data = {
             'contact': {'name': 'Jane Doe'},
             'ci': '12345678902',
-            'church': church.id
+            'church': self.church.id
         }
 
     def test_create_donee_authenticated(self):
@@ -172,6 +179,20 @@ class PrivateDoneeAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
+    def test_donee_lists_includes_province(self):
+        """Tests province attr is included on donees when listing."""
+        Donee.objects.create(
+            contact=self.contact,
+            church=self.church
+        )
+
+        res = self.client.get(DONEE_URL)
+        print(res.data)
+
+        first_donee = res.data[0]
+
+        self.assertIn('province', first_donee)
+
 
 class DoneeModelTest(TestCase):
     """General test Cases"""
@@ -191,7 +212,7 @@ class DoneeModelTest(TestCase):
             note=Note.objects.create(note="Note content"),
             municipality=Municipality.objects.create(
                 name="Municipality Name",
-                province="UNK"),
+                province="PRI"),
             inscript=timezone.now(),
         )
 
