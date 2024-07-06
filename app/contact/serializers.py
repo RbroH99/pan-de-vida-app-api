@@ -184,6 +184,9 @@ class DoneeSerializer(BaseContactChildrenSerializer):
             ['code', 'ci', 'inscript', 'church']
         read_only_fields = ['id', 'code']
 
+    def get_code(self, obj):
+        return obj.code
+
 
 class DoneeDetailSerializer(DoneeSerializer):
     """Serializer for donee objects."""
