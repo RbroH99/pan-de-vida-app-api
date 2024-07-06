@@ -173,16 +173,20 @@ class DonorSerializer(CountryFieldMixin, BaseContactChildrenSerializer):
 
 class DoneeSerializer(BaseContactChildrenSerializer):
     """Serializer for donee objects."""
-    # Importing inside function to avoid circular import with church serializer
     code = serializers.SerializerMethodField()
     inscript = serializers.DateField(required=False, format="%Y-%m-%d")
     church = serializers.CharField(source='church.name', read_only=True)
+    province = serializers.CharField(source='church.municipality.province',
+                                     read_only=True)
 
     class Meta(BaseContactChildrenSerializer.Meta):
         model = Donee
         fields = BaseContactChildrenSerializer.Meta.fields + \
-            ['code', 'ci', 'inscript', 'church']
+            ['code', 'ci', 'inscript', 'church', 'province']
         read_only_fields = ['id', 'code']
+
+    def get_code(self, obj):
+        return obj.code
 
 
 class DoneeDetailSerializer(DoneeSerializer):
