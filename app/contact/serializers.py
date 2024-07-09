@@ -66,11 +66,8 @@ class ContactSerializer(serializers.ModelSerializer):
         contact = Contact.objects.create(**validated_data)
 
         if note:
-            try:
-                note = Note.objects.create(**note)
-                contact.note = note
-            except Exception:
-                return Exception
+            note = Note.objects.create(**note)
+            contact.note = note
 
         contact.save()
 
