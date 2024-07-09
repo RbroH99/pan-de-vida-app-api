@@ -60,6 +60,22 @@ class ContactSerializer(serializers.ModelSerializer):
             ]
         read_only_fields = ['id']
 
+    def create(self, validated_data):
+        """Creates a new contact instance in db."""
+        note = validated_data.pop('note', None)
+        contact = Contact.objects.create(**validated_data)
+
+        if note:
+            try:
+                note, _ = Note.objects.get_or_create(note)
+                contact.note = note
+            except Exception:
+                print(Exception)
+
+        contact.save()
+
+        return contact
+
 
 class PhoneNumberSerializer(serializers.ModelSerializer):
     """Serializer for the PhoneNumber model."""
