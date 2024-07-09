@@ -67,7 +67,7 @@ class ContactSerializer(serializers.ModelSerializer):
 
         if note:
             try:
-                note, _ = Note.objects.get_or_create(note)
+                note, _ = Note.objects.create(note)
                 contact.note = note
             except Exception:
                 print(Exception)
