@@ -67,10 +67,10 @@ class ContactSerializer(serializers.ModelSerializer):
 
         if note:
             try:
-                note, _ = Note.objects.create(note)
+                note = Note.objects.create(**note)
                 contact.note = note
             except Exception:
-                print(Exception)
+                return Exception
 
         contact.save()
 
