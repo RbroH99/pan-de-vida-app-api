@@ -141,3 +141,18 @@ class PrivateContactAPITests(TestCase):
             for choice in gender_choices
         ]
         self.assertListEqual(res.data, expected_data)
+
+    def test_create_note_on_contact_create(self):
+        """"Test creating a new note on a new contact creation."""
+        user = create_user()
+        payload = {
+            "name": "Name",
+            "lastname": "Last Name",
+            "gender": "M",
+            "user": user.id,
+            "address": "St.Domingo 114A b/Heroes Lane and Columbia, Tijuana.",
+            "note": {"note": "Nota de prueba para la api."},
+        }
+        res = self.client.post(CONTACTS_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
