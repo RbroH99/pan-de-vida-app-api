@@ -120,6 +120,8 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def validate_contact(self, contact_info):
+        note = contact_info.pop("note", None)
+
         if "id" in contact_info:
             try:
                 contact = get_object_or_404(Contact, id=contact_info['id'])
@@ -132,6 +134,10 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
         if "gender" not in contact_info:
             contact_info["gender"] = '-'
         contact = Contact.objects.create(**contact_info)
+        if note:
+            contact.note = Note.objects.create(**note)
+            contact.save()
+
         return contact
 
     def update(self, instance, validated_data):

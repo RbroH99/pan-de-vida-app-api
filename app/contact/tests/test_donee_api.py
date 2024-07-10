@@ -187,11 +187,24 @@ class PrivateDoneeAPITest(TestCase):
         )
 
         res = self.client.get(DONEE_URL)
-        print(res.data)
 
         first_donee = res.data[0]
 
         self.assertIn('province', first_donee)
+
+    def test_create_contact_note_on_donee_creation(self):
+        """Tests creating a contact with a note while creating new donee."""
+        payload = {
+            "contact": {"name": "New Contact",
+                        "note": {"note": "New Note"},
+                        "gender": "-"},
+            "ci": "23415367245",
+            "church": self.church.id,
+        }
+
+        res = self.client.post(DONEE_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
 
 class DoneeModelTest(TestCase):
