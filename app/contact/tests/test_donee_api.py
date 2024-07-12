@@ -206,6 +206,25 @@ class PrivateDoneeAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
+    def test_create_note_on_donee_update(self):
+        """Test creating new note on donee contact update."""
+        payload = {
+            "contact": {"note": {"note": "New Note"},},
+        }
+
+        donee = Donee.objects.create(
+            ci="241336523453",
+            church=self.church,
+            contact=self.contact
+        )
+
+        url = detail_url(donee.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        donee.refresh_from_db()
+        self.assertEqual(payload["contact"]["note"]["note"], donee.contact.note.note)
+
 
 class DoneeModelTest(TestCase):
     """General test Cases"""
