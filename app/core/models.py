@@ -253,7 +253,7 @@ class Donee(models.Model):
         new_number = current_number + 1
         return '-'.join(parts[:-1] + [str(new_number)])
 
-    def generate_unique_code(self):
+    def generate_code(self):
         """Generate unique code for donee in its church."""
         last_donee = Donee.objects.filter(church=self.church).order_by('-id').first()
         if last_donee:
