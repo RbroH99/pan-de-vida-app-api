@@ -195,11 +195,15 @@ class PrivateDoneeAPITest(TestCase):
     def test_create_contact_note_on_donee_creation(self):
         """Tests creating a contact with a note while creating new donee."""
         payload = {
-            "contact": {"name": "New Contact",
-                        "note": {"note": "New Note"},
-                        "gender": "-"},
-            "ci": "23415367245",
-            "church": self.church.id,
+            "contact": {
+              "name": "Marco Polo",
+              "lastname": "Ese",
+              "gender": "-",
+              "address": "string",
+              "note": {"note": "New Note"},
+            },
+            "ci": "09876543212",
+            "church": self.church.id
         }
 
         res = self.client.post(DONEE_URL, payload, format='json')
@@ -209,13 +213,39 @@ class PrivateDoneeAPITest(TestCase):
     def test_create_note_on_donee_update(self):
         """Test creating new note on donee contact update."""
         payload = {
-            "contact": {"note": {"note": "New Note"},},
+            "contact": {
+                "name": "New Name",
+                "note": {"note": "New Note"},},
         }
 
         donee = Donee.objects.create(
             ci="241336523453",
             church=self.church,
             contact=self.contact
+        )
+
+        url = detail_url(donee.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        donee.refresh_from_db()
+        self.assertEqual(payload["contact"]["note"]["note"], donee.contact.note.note)
+
+    def test_update_note_on_donee_update(self):
+        """Test updating note on donee contact update."""
+        note = Note.objects.create(note="New Note")
+        contact = Contact.objects.create(name="Contact", note=note)
+
+        payload = {
+            "contact": {
+                "name": "New Name",
+                "note": {"note": "Updated Note"},},
+        }
+
+        donee = Donee.objects.create(
+            ci="241336523453",
+            church=self.church,
+            contact=contact,
         )
 
         url = detail_url(donee.id)
