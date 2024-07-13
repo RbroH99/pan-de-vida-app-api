@@ -250,7 +250,7 @@ class Donee(models.Model):
         """Generate unique code for pacient from church id."""
         last_donee = \
             Donee.objects.filter(church=self.church)\
-            .order_by('-code').first()
+            .order_by('-id').first()
         if last_donee:
             try:
                 last_specific_id = str(last_donee.code).split('-')[-1]
