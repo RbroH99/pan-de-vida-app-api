@@ -246,21 +246,32 @@ class Donee(models.Model):
                                null=False,
                                on_delete=models.CASCADE)
 
-    def generate_code(self):
-        """Generate unique code for pacient from church id."""
-        last_donee = \
-            Donee.objects.filter(church=self.church)\
-            .order_by('-id').first()
+    def increment_number(code):
+        """Increment specific number in code."""
+        parts = code.split('-')
+        current_number = int(parts[-1])
+        new_number = current_number + 1
+        return '-'.join(parts[:-1] + [str(new_number)])
+
+    def generate_unique_code(self):
+        """Generate unique code for donee in its church."""
+        last_donee = Donee.objects.filter(church=self.church).order_by('-id').first()
         if last_donee:
             try:
                 last_specific_id = str(last_donee.code).split('-')[-1]
-                code = f'{self.church.id}-{int(last_specific_id) + 1}'
+                potential_code = f'{self.church.id}-{int(last_specific_id) + 1}'
             except (ValueError, IndexError):
-                code = f'{self.church.id}-1'
+                potential_code = f'{self.church.id}-1'
         else:
-            code = f'{self.church.id}-1'
+            potential_code = f'{self.church.id}-1'
 
-        return code
+        while True:
+            if not Donee.objects.filter(code=potential_code).exists():
+                break
+            potential_code = self.increment_number(potential_code)
+
+        return potential_code
+
 
     def save(self, *args, **kwargs):
         self.code = self.generate_code()
