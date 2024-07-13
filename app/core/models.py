@@ -246,7 +246,7 @@ class Donee(models.Model):
                                null=False,
                                on_delete=models.CASCADE)
 
-    def increment_number(code):
+    def increment_number(self, code):
         """Increment specific number in code."""
         parts = code.split('-')
         current_number = int(parts[-1])
