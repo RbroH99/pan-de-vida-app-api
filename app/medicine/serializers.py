@@ -73,7 +73,7 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
     class Meta(BasicNameOnlyModelSerializer.Meta):
         model = Medicine
         fields = BasicNameOnlyModelSerializer.Meta.fields + \
-            ['presentation', 'classification', 'measurement', 'measurement_units']
+            ['presentation', 'classification', 'measurement', 'measurement_units', 'quantity']
 
     def update(self, instance, validated_data):
         validated_data.pop("id", None)
