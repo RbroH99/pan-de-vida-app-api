@@ -75,17 +75,36 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
         fields = BasicNameOnlyModelSerializer.Meta.fields + \
             ['presentation', 'classification', 'measurement', 'measurement_units', 'quantity']
 
+    def create(self, validated_data):
+        """Creates a new medicine instance."""
+        classification_data = validated_data.pop('classification', None)
+        presentation_data = validated_data.pop('presentation', None)
+
+        medicine = Medicine.objects.create(**validated_data)
+
+        if classification_data:
+            classification, _ = MedClass.objects.get_or_create(name=classification_data)
+            medicine.classification = classification
+
+        if presentation_data:
+            presentation, _ = MedicinePresentation.objects.get_or_create(name=presentation_data)
+            medicine.presentation = presentation
+
+        medicine.save()
+
+        return medicine
+
     def update(self, instance, validated_data):
         validated_data.pop("id", None)
         classification_data = validated_data.pop('classification', None)
         presentation_data = validated_data.pop('presentation', None)
 
         if classification_data:
-            classification, _ = MedClass.objects.get_or_create(classification_data['name'])
+            classification, _ = MedClass.objects.get_or_create(name=classification_data['name'])
             instance.classification = classification
 
         if presentation_data:
-            presentation, _ = MedicinePresentation.objects.get_or_create()
+            presentation, _ = MedicinePresentation.objects.get_or_create(name=presentation_data['name'])
             instance.presentation = presentation
 
         instance.name = validated_data.get("name", instance.name)
