@@ -62,7 +62,6 @@ class MedicinePresentationSerializer(serializers.ModelSerializer):
         return presentation
 
 
-
 class MedicineSerializer(BasicNameOnlyModelSerializer):
     """Serializer for medicine endpoints."""
     classification = MedClassSerializer(many=False, required=False)
@@ -85,20 +84,23 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
                 return validated_data
             except model_class.DoesNotExist:
                 raise serializers.ValidationError(
-                    f"{classname} does not exist!"
+                    f"{classname} {_('does not exist!')}"
                 )
         name = incoming_data.get("name", None)
         if name:
             try:
                 if type(name) is not str:
                     raise serializers.ValidationError(
-                        "Name must be a string!"
+                        _("Name must be a string!")
                     )
                 else:
                     validated_data = {"name": name}
                     return validated_data
             except Exception as e:
-                print(f"Ocurrió una excepción: {e}, type: {type(name)}")
+                print(
+                    f"{_('An exception ocurred:')} {e}, "
+                    + f"{_('type:')}{type(name)}"
+                    )
 
     def validate_classification(self, classification_data):
         """Validates classification passed to medicine endpoint."""
@@ -118,6 +120,18 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
         )
         return validated_data
 
+    def handle_model_attr_data(self, data, model_class):
+        """
+        Handle data in presentation and classification.
+        and verify type of data to return the name attr.
+        """
+        if isinstance(data, model_class):
+            return data.name
+        elif isinstance(data, dict):
+            return data.get('name')
+        else:
+            return data
+
     def create(self, validated_data):
         """Creates a new medicine instance."""
         classification_data = validated_data.pop('classification', None)
@@ -126,13 +140,23 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
         medicine = Medicine.objects.create(**validated_data)
 
         if classification_data:
-            classification_name = classification_data.name
-            classification, _ = MedClass.objects.get_or_create(name=classification_name)
+            classification_name = self.handle_model_attr_data(
+                classification_data,
+                MedClass
+            )
+            classification, created = MedClass.objects.get_or_create(
+                name=classification_name
+            )
             medicine.classification = classification
 
         if presentation_data:
-            presentation_name = presentation_data.name
-            presentation, _ = MedicinePresentation.objects.get_or_create(name=presentation_name)
+            presentation_name = self.handle_model_attr_data(
+                presentation_data,
+                MedicinePresentation
+            )
+            presentation, created = MedicinePresentation.objects.get_or_create(
+                name=presentation_name
+            )
             medicine.presentation = presentation
 
         medicine.save()
@@ -145,20 +169,34 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
         presentation_data = validated_data.pop('presentation', None)
 
         if classification_data:
-            classification_name = classification_data.get('name', classification_data)
-            classification, _ = MedClass.objects.get_or_create(name=classification_name)
+            classification_name = self.handle_model_attr_data(
+                classification_data,
+                MedClass
+            )
+            classification, created = MedClass.objects.get_or_create(
+                name=classification_name
+            )
             instance.classification = classification
 
         if presentation_data:
-            presentation_name = presentation_data.get('name', classification_data)
-            presentation, _ = MedicinePresentation.objects.get_or_create(name=presentation_name)
+            presentation_name = self.handle_model_attr_data(
+                presentation_data,
+                MedicinePresentation
+            )
+            presentation, created = MedicinePresentation.objects.get_or_create(
+                name=presentation_name
+            )
             instance.presentation = presentation
 
         instance.name = validated_data.get("name", instance.name)
-        instance.measurement = validated_data.get("measurement",
-                                                  instance.measurement)
-        instance.measurement_units = validated_data.\
-            get("measurement_units", instance.measurement_units)
+        instance.measurement = validated_data.get(
+            "measurement",
+            instance.measurement
+        )
+        instance.measurement_units = validated_data.get(
+            "measurement_units",
+            instance.measurement_units
+        )
 
         instance.save()
 
