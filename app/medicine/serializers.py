@@ -198,6 +198,11 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
             instance.measurement_units
         )
 
+        instance.quantity = validated_data.get(
+            "quantity",
+            instance.quantity
+        )
+
         instance.save()
 
         return instance
