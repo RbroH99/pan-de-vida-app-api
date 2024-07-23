@@ -263,8 +263,8 @@ class Donee(models.Model):
         if last_donee:
             try:
                 last_specific_id = str(last_donee.code).split('-')[-1]
-                potential_code = f'{self.church.id}-{
-                    int(last_specific_id) + 1}'
+                potential_code = \
+                    f'{self.church.id}-{int(last_specific_id) + 1}'
             except (ValueError, IndexError):
                 potential_code = f'{self.church.id}-1'
         else:
