@@ -43,13 +43,21 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
 
     def perform_create(self, serializer):
         if 'classification' in self.request.data:
-            med_class_name = self.request.data.get('classification').get('name')
-            med_class, created = MedClass.objects.get_or_create(name=med_class_name)
+            med_class_name = self.request.data.get(
+                'classification'
+            ).get('name')
+            med_class, created = MedClass.objects.get_or_create(
+                name=med_class_name
+            )
             serializer.save(classification=med_class)
         if 'presentation' in self.request.data:
-            presentation_name = self.request.data.get('presentation').get('name')
+            presentation_name = self.request.data.get(
+                'presentation'
+            ).get('name')
             presentation, created = \
-                MedicinePresentation.objects.get_or_create(name=presentation_name)
+                MedicinePresentation.objects.get_or_create(
+                    name=presentation_name
+                )
             serializer.save(presentation=presentation)
         return serializer.save()
 
@@ -58,6 +66,13 @@ class DiseaseViewSet(BaseNameOnlyPrivateModel):
     """Manage disease endpoints."""
     serializer_class = serializers.DiseaseSerializer
     queryset = Disease.objects.all()
+
+    def get_serializer_class(self):
+        """Returns serializer according to the request method."""
+        if self.action == 'list':
+            return serializers.DiseaseListSerializer
+        else:
+            return self.serializer_class
 
 
 class TreatmentViewSet(BaseNameOnlyPrivateModel):

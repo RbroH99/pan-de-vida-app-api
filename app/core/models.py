@@ -19,6 +19,14 @@ from .utils import (
 )
 
 
+class Note(models.Model):
+    """Notes and observation for object instances in the DB."""
+    note = models.TextField()
+
+    def __str__(self) -> str:
+        return f'Note No.: {self.id}.'
+
+
 # USER RELATED MODELS
 class UserManager(BaseUserManager):
     """Manager for the users."""
@@ -119,9 +127,10 @@ class Medicine(models.Model):
 
 class Disease(models.Model):
     """Diseases donees suffer."""
-    name = models.CharField(max_length=80,
-                            blank=False,
-                            null=False)
+    name = models.CharField(
+        max_length=80,
+        blank=False,
+        null=False)
 
     def __str__(self) -> str:
         return self.name
@@ -129,10 +138,11 @@ class Disease(models.Model):
 
 class Treatment(models.Model):
     """Medic treatment for donees-illnesses."""
-    donee = models.ForeignKey('Donee',
-                                blank=False,
-                                null=False,
-                                on_delete=models.CASCADE)
+    donee = models.ForeignKey(
+        'Donee',
+        blank=False,
+        null=False,
+        on_delete=models.CASCADE)
     disease = models.ForeignKey(Disease,
                                 blank=False,
                                 null=False,
@@ -146,14 +156,6 @@ class Treatment(models.Model):
 
 
 # CONTACT APP RELATED MODELS
-class Note(models.Model):
-    """Notes and observation for object instances in the DB."""
-    note = models.TextField()
-
-    def __str__(self) -> str:
-        return f'Note No.: {self.id}.'
-
-
 class Contact(models.Model):
     """Contact info for persons in the db."""
     user = models.ForeignKey(
@@ -255,11 +257,14 @@ class Donee(models.Model):
 
     def generate_code(self):
         """Generate unique code for donee in its church."""
-        last_donee = Donee.objects.filter(church=self.church).order_by('-id').first()
+        last_donee = Donee.objects.filter(
+            church=self.church
+        ).order_by('-id').first()
         if last_donee:
             try:
                 last_specific_id = str(last_donee.code).split('-')[-1]
-                potential_code = f'{self.church.id}-{int(last_specific_id) + 1}'
+                potential_code = f'{self.church.id}-{
+                    int(last_specific_id) + 1}'
             except (ValueError, IndexError):
                 potential_code = f'{self.church.id}-1'
         else:
@@ -271,7 +276,6 @@ class Donee(models.Model):
             potential_code = self.increment_number(potential_code)
 
         return potential_code
-
 
     def save(self, *args, **kwargs):
         self.code = self.generate_code()
