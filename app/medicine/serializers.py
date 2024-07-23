@@ -209,10 +209,30 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
 
 
 class DiseaseSerializer(BasicNameOnlyModelSerializer):
-    """Serializer fr the disease object."""
+    """Serializer for the disease object."""
 
     class Meta(BasicNameOnlyModelSerializer.Meta):
         model = Disease
+
+
+class DiseaseListSerializer(DiseaseSerializer):
+    """Return diseases with treatments related to them."""
+    treatments = serializers.SerializerMethodField()
+
+    class Meta(DiseaseSerializer.Meta):
+        fields = DiseaseSerializer.Meta.fields + ['treatments']
+
+    def get_treatments(self, obj):
+        """Return medicines used for the disease."""
+        treatment_ids = Treatment.objects.filter(
+            disease=obj
+        ).values_list('medicine__id', flat=True)
+
+        unique_medicines = Medicine.objects.filter(
+            id__in=treatment_ids
+        ).distinct()
+
+        return MedicineSerializer(unique_medicines, many=True).data
 
 
 class TreatmentSerializer(serializers.ModelSerializer):

@@ -8,7 +8,14 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Disease
+from core.models import (
+    Medicine,
+    Disease,
+    Treatment,
+    Contact,
+    Donee,
+    Church
+)
 
 
 DISEASE_URL = reverse('medicine:disease-list')
@@ -23,6 +30,46 @@ def create_disease(name="Test Disease"):
     """Create and return a new disease instance."""
     disease = Disease.objects.create(name=name)
     return disease
+
+
+def create_medicine(name="Test Medication"):
+    """Create and return new medicine instance."""
+    medicine = Medicine.objects.create(name=name)
+    return medicine
+
+
+def create_donee(
+        contact_name="Donee Contact",
+        church_name="Donee Church",
+        donee_ci="12345678909"
+):
+    """Creates a donee instance and returns it."""
+    try:
+        donee_contact = Contact.objects.create(name=contact_name)
+        donee_church = Church.objects.create(name=church_name)
+        donee = Donee.objects.create(
+            contact=donee_contact,
+            church=donee_church,
+            ci=donee_ci
+        )
+
+        return donee
+    except Exception as e:
+        print("Exception :" + e)
+
+
+def create_treatment(medicine, disease, donee):
+    """
+    Create and return new treatments
+    instance associated to disease.
+    """
+    treatment = Treatment.objects.create(
+        donee=donee,
+        disease=disease
+    )
+    treatment.medicine.add(medicine.id)
+
+    return treatment
 
 
 class PublicDiseaseAPITests(TestCase):
@@ -133,3 +180,22 @@ class PrivateDiseaseAPITest(TestCase):
         url = detail_url(disease.id)
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_get_disease_with_treatments(self):
+        """Verify endpoint return correct associated medicines."""
+        medicine1 = create_medicine("Medication 1")
+        medicine2 = create_medicine("Medication 2")
+
+        disease = create_disease(name="Test Disease for Treatments")
+
+        donee = create_donee()
+
+        create_treatment(medicine1, disease, donee)
+        create_treatment(medicine2, disease, donee)
+
+        res = self.client.get(DISEASE_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertIn("treatments", res.data[-1])
+        self.assertEqual(len(res.data[-1]["treatments"]), 2)

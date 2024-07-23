@@ -132,13 +132,14 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
             if "name" not in contact_info:
                 raise serializers.ValidationError(_("Contact needs a name."))
 
-
         if note:
             if "id" in note:
                 try:
                     Note.objects.get(id=note["id"])
                 except Note.DoesNotExist:
-                    raise serializers.ValidationError(_("Note instance does not exists."))
+                    raise serializers.ValidationError(
+                        _("Note instance does not exists.")
+                    )
             elif "note" not in note:
                 raise serializers.ValidationError(_("Note needs a body."))
 
@@ -184,18 +185,26 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
                         note_instance = Note.objects.get()
                     except Note.DoesNotExist:
                         if "note" in note:
-                            note_instance = Note.objects.create(note=note["note"])
+                            note_instance = Note.objects.create(
+                                note=note["note"]
+                            )
                         else:
-                            raise serializers.ValidationError(_("Invalid Note Object!!"))
+                            raise serializers.ValidationError(
+                                _("Invalid Note Object!!")
+                            )
                     contact_instance.note = note_instance
                     contact_instance.save()
         else:
             contact_instance = Contact.objects.create(**contact)
             if note:
                 if "id" in note:
-                    raise serializers.ValidationError(_("New contact's note must be new."))
+                    raise serializers.ValidationError(
+                        _("New contact's note must be new.")
+                    )
                 elif "note" not in note:
-                    raise serializers.ValidationError(_("Note needs to have content."))
+                    raise serializers.ValidationError(
+                        _("Note needs to have content.")
+                    )
                 note_instance = Note.objects.create(note=note["note"])
                 contact_instance.note = note_instance
         return contact_instance
@@ -276,10 +285,6 @@ class DoneeDetailSerializer(DoneeSerializer):
         queryset=Church.objects.all(),
         required=True
     )
-
-    def get_code(self, obj):
-        return obj.code
-
 
     class Meta(BaseContactChildrenSerializer.Meta):
         model = Donee
