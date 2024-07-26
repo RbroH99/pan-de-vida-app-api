@@ -92,11 +92,6 @@ class DiseaseViewSet(BaseNameOnlyPrivateModel):
         donees = Donee.objects.filter(id__in=list(donee_ids))
         serializer = DoneeSerializer(donees, many=True)
 
-        page = self.paginate_queryset(donees)
-        if page is not None:
-            serializer = DoneeSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
         return Response(serializer.data)
 
 
