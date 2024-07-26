@@ -3,6 +3,7 @@ Views for the medicine API.
 """
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -79,7 +80,10 @@ class DiseaseViewSet(BaseNameOnlyPrivateModel):
         else:
             return self.serializer_class
 
-    @action(detail=True, methods=['get'])
+    @action(
+            detail=True, methods=['get'],
+            pagination_class=LimitOffsetPagination
+    )
     def patients(self, request, pk=None):
         """Returns all patients for a disease."""
         disease = self.get_object()
@@ -87,11 +91,6 @@ class DiseaseViewSet(BaseNameOnlyPrivateModel):
         donee_ids = treatments_with_disease.values_list('donee', flat=True)
         donees = Donee.objects.filter(id__in=list(donee_ids))
         serializer = DoneeSerializer(donees, many=True)
-
-        page = self.paginate_queryset(donees)
-        if page is not None:
-            serializer = DoneeSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
 
         return Response(serializer.data)
 
