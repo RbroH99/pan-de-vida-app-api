@@ -4,18 +4,23 @@ Views for the medicine API.
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework import (
     viewsets,
 )
 
 from medicine import serializers
 
+from contact.serializers import DoneeSerializer
+
 from core. models import (
     MedClass,
     MedicinePresentation,
     Medicine,
     Disease,
-    Treatment
+    Treatment,
+    Donee
 )
 
 
@@ -73,6 +78,17 @@ class DiseaseViewSet(BaseNameOnlyPrivateModel):
             return serializers.DiseaseListSerializer
         else:
             return self.serializer_class
+
+    @action(detail=True, methods=['get'])
+    def patients(self, request, pk=None):
+        """Returns all patients for a disease."""
+        disease = self.get_object()
+        treatments_with_disease = Treatment.objects.filter(disease=disease)
+        donee_ids = treatments_with_disease.values_list('donee', flat=True)
+        donees = Donee.objects.filter(id__in=list(donee_ids))
+        serializer = DoneeSerializer(donees, many=True)
+
+        return Response(serializer.data)
 
 
 class TreatmentViewSet(BaseNameOnlyPrivateModel):
