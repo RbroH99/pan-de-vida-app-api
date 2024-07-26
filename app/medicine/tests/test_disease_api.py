@@ -199,3 +199,17 @@ class PrivateDiseaseAPITest(TestCase):
 
         self.assertIn("treatments", res.data[-1])
         self.assertEqual(len(res.data[-1]["treatments"]), 2)
+
+    def test_retrieve_diseases_patients(self):
+        """Verify custom action 'patients' returns the correct donees."""
+        donee = create_donee()
+        medicine = create_medicine()
+        disease = create_disease()
+        create_treatment(medicine, disease, donee)
+
+        url = detail_url(disease.id)
+        res = self.client.get(f"{url}patients/")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['ci'], donee.ci)
