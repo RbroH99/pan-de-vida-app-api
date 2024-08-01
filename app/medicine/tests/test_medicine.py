@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from unittest.mock import Mock
+
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -77,7 +79,8 @@ class PrivateMedicineAPITests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             id=9998,
-            email='user@example.com'
+            email='user@example.com',
+            role=1
         )
         self.client = APIClient()
         self.client.force_authenticate(self.user)
@@ -98,10 +101,15 @@ class PrivateMedicineAPITests(TestCase):
 
         res = self.client.get(MEDICINE_URL)
 
-        medicines = Medicine.objects.all()
-        serializer = MedicineSerializer(medicines, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+
+        request_mock = Mock()
+        request_mock.user = self.user
+
+        medicines = Medicine.objects.all()
+        serializer = MedicineSerializer(medicines, many=True,
+                                        context={'request': request_mock})
+        self.assertEqual(serializer.data, res.json())
 
     def test_staff_delete_medicine(self):
         """Test staff user deleting medicine instance success."""

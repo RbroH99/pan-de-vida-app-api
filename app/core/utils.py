@@ -5,6 +5,12 @@ from django.utils.translation import gettext as _
 
 from rest_framework import serializers
 
+role_choices = (
+    (1, 'admin'),
+    (2, 'agent'),
+    (3, 'donor'),
+)
+
 measurement_choices = (
     ('mL', _('Milliliters')),
     ('oz', _('Ounce')),
@@ -49,7 +55,7 @@ def name_validator(model_ref, name):
     names_list = model_ref.objects.all().values("name")
     if name in names_list:
         raise serializers.ValidationError(
-            (f"Name already exists in the DB."),
+            ("Name already exists in the DB."),
             code='unique'
         )
     return name

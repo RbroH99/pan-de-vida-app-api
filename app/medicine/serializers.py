@@ -207,6 +207,14 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
 
         return instance
 
+    def to_representation(self, instance):
+        """Returns medicine json excluding quantity if not admin."""
+        representation = super().to_representation(instance)
+        user = self.context['request'].user
+        if user.role != 1:
+            representation.pop("quantity", None)
+        return representation
+
 
 class DiseaseSerializer(BasicNameOnlyModelSerializer):
     """Serializer for the disease object."""

@@ -23,12 +23,15 @@ from core. models import (
     Treatment,
     Donee
 )
+from core.permissions import (
+    IsNotDonor
+)
 
 
 class BaseNameOnlyPrivateModel(viewsets.ModelViewSet):
     """Basic view Authorization for name-only models."""
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotDonor]
 
 
 class MedClassViewSet(BaseNameOnlyPrivateModel):

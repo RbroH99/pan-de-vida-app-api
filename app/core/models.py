@@ -16,6 +16,7 @@ from .utils import (
     PROVINCES_CUBA,
     measurement_choices,
     gender_choices,
+    role_choices
 )
 
 
@@ -49,6 +50,7 @@ class UserManager(BaseUserManager):
 
         user.is_superuser = True
         user.is_staff = True
+        user.role = 3
         user.set_password(password)
         user.save(using=self._db)
 
@@ -61,6 +63,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    role = models.PositiveSmallIntegerField(
+        choices=role_choices,
+        blank=True,
+        null=True,
+        default=3
+    )
 
     objects = UserManager()
 
