@@ -212,3 +212,69 @@ class PrivateMedicineAPITests(TestCase):
         self.assertEqual(
             presentation_dict["name"], res.data["presentation"]["name"]
         )
+
+
+class RoleBasedAPITests(TestCase):
+    """Test endpoint responses accordin to the user role."""
+
+    def setUp(self):
+        self.admin_user = get_user_model().objects.create_user(
+            id=9997,
+            email='adminuser@example.com',
+            role=1
+        )
+        self.admin_client = APIClient()
+        self.admin_client.force_authenticate(self.admin_user)
+
+        self.agent_user = get_user_model().objects.create_user(
+            id=9996,
+            email='agentuser@example.com',
+            role=2
+        )
+        self.agent_client = APIClient()
+        self.agent_client.force_authenticate(self.agent_user)
+
+        self.donor_user = get_user_model().objects.create_user(
+            id=9995,
+            email='donoruser@example.com',
+        )
+        self.donor_client = APIClient()
+        self.donor_client.force_authenticate(self.donor_user)
+
+    def test_donor_cant_access_medicines(self):
+        """Test donor user can't reach the medicine endpoints."""
+        medicine = Medicine.objects.create(name="Medicine Name")
+        url = detail_url(medicine.id)
+
+        res = self.donor_client.get(MEDICINE_URL)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+        res = self.donor_client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+        res = self.donor_client.delete(url)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+        res = self.donor_client.patch(url, {"name": "New Name"}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_not_quantity_if_user_is_agent(self):
+        """Test quantity is not in the response if user is agent."""
+
+        medicine = Medicine.objects.create(name="Medicine Name")
+
+        url = detail_url(medicine.id)
+        res = self.agent_client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertNotIn('quantity', res.data)
+
+    def test_quantity_in_if_user_is_admin(self):
+        """Test quantity is in the response if user is admin."""
+        medicine = Medicine.objects.create(name="Medicine Name", quantity=2)
+
+        url = detail_url(medicine.id)
+        res = self.admin_client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('quantity', res.data)
