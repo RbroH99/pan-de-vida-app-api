@@ -131,7 +131,8 @@ class PrivateDiseaseAPITest(TestCase):
         self.user = get_user_model().objects.create_user(
             id=999999,
             email='test@example.com',
-            password='testpass'
+            password='testpass',
+            role=1
         )
         self.client.force_authenticate(user=self.user)
         self.disease_data = {
@@ -213,3 +214,44 @@ class PrivateDiseaseAPITest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['ci'], donee.ci)
+
+
+class PrivateFilteringAPITests(TestCase):
+    """Test cases for the filtering and ordering in API responses."""
+
+    def setUp(self):
+        """
+        Set up the test environment for authenticated users.
+        """
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            id=999998,
+            email='test@example.com',
+            password='testpass',
+            role=1
+        )
+        self.client.force_authenticate(user=self.user)
+        self.disease1 = Disease.objects.create(name="Alzheimer")
+        self.disease2 = Disease.objects.create(name="Zenophobia")
+
+    def test_ordering_filter(self):
+        """Test ordering filter works correctly."""
+        res = self.client.get(f"{DISEASE_URL}?ordering=name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.disease1.id)
+        self.assertEqual(res.data[-1]['id'], self.disease2.id)
+
+        res = self.client.get(f"{DISEASE_URL}?ordering=-name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[-1]['id'], self.disease1.id)
+        self.assertEqual(res.data[0]['id'], self.disease2.id)
+
+    def test_search_filter(self):
+        """Test search filter works as expected."""
+        res = self.client.get(f"{DISEASE_URL}?alzh")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.disease1.id)
+
+        res = self.client.get(f"{DISEASE_URL}?search=zeno")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.disease2.id)

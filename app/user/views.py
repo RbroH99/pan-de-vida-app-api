@@ -5,6 +5,9 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from rest_framework import generics, permissions, viewsets
+from rest_framework.filters import SearchFilter, OrderingFilter
+
+from django_filters.rest_framework import DjangoFilterBackend
 
 from django.contrib.auth import get_user_model
 from django.http import Http404
@@ -35,6 +38,10 @@ class AdminUserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['role']
+    search_fields = ['name', 'email']
+    ordering_fields = ['name', 'email']
 
     actions = {
         'list': ['get'],

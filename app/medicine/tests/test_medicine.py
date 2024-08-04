@@ -26,6 +26,25 @@ def detail_url(medicine_id):
     return reverse('medicine:medicine-detail', args=[medicine_id])
 
 
+def create_medicine(
+        medicine_name="Test Name",
+        med_class_name="Classification Name",
+        presentation_name='Presentation Name',
+        measurement=200
+):
+
+    classification = MedClass.objects.create(name=med_class_name)
+    presentation = MedicinePresentation.objects.create(
+        name=presentation_name
+    )
+    return Medicine.objects.create(
+        name=medicine_name,
+        classification=classification,
+        presentation=presentation,
+        measurement=measurement
+    )
+
+
 class PublicMedicineAPITests(TestCase):
     """Unauthenticated requests to the medicine API."""
 
@@ -212,6 +231,75 @@ class PrivateMedicineAPITests(TestCase):
         self.assertEqual(
             presentation_dict["name"], res.data["presentation"]["name"]
         )
+
+
+class PrivateFilteringAPITests(TestCase):
+    """Test cases for the filtering and ordering in API responses."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            id=9997,
+            email='user@example.com',
+            role=1
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+        self.medicine1 = create_medicine(
+            medicine_name="A Medicine",
+            med_class_name="A Classification",
+            presentation_name='A Presentation',
+        )
+        self.medicine2 = create_medicine(
+            medicine_name="Z Medicine",
+            med_class_name="Z Classification",
+            presentation_name='Z Presentation',
+            measurement=250
+        )
+
+    def test_ordering_filter(self):
+        """Test ordering filter works correctly."""
+        res = self.client.get(f"{MEDICINE_URL}?ordering=name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medicine1.id)
+        self.assertEqual(res.data[-1]['id'], self.medicine2.id)
+
+        res = self.client.get(f"{MEDICINE_URL}?ordering=-presentation__name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[-1]['id'], self.medicine1.id)
+        self.assertEqual(res.data[0]['id'], self.medicine2.id)
+
+        res = self.client.get(f"{MEDICINE_URL}?ordering=-measurement")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[-1]['id'], self.medicine1.id)
+        self.assertEqual(res.data[0]['id'], self.medicine2.id)
+
+    def test_search_filter(self):
+        """Test search filter works as expected."""
+        res = self.client.get(f"{MEDICINE_URL}?a")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medicine1.id)
+
+        res = self.client.get(f"{MEDICINE_URL}?search=z")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medicine2.id)
+
+    def test_fields_filter(self):
+        """Test filter by fields works as expected."""
+        res = self.client.get(f"{MEDICINE_URL}?name=A Medicine")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medicine1.id)
+
+        res = self.client.get(
+            f"{MEDICINE_URL}?presentation__name=Z Presentation"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medicine2.id)
+
+        res = self.client.get(
+            f"{MEDICINE_URL}?classification__name=A Classification"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medicine1.id)
 
 
 class RoleBasedAPITests(TestCase):

@@ -27,15 +27,24 @@ def detail_url(donee_id):
     return reverse('contact:donee-detail', args=[donee_id])
 
 
-def create_donee(contact_name="John", church_name="Church Name"):
+def create_donee(contact_name="John",
+                 contact_lastname='Doe',
+                 contact_gender='M',
+                 church_name="Church Name",
+                 denomination_name="Test Denomination",
+                 donee_ci="12345678901"):
     """Create and return a new donee instance."""
-    contact = Contact.objects.create(name=contact_name)
-    denomination = Denomination.objects.create(name="Test Denomination")
+    contact = Contact.objects.create(
+        name=contact_name,
+        lastname=contact_lastname,
+        gender=contact_gender
+    )
+    denomination = Denomination.objects.create(name=denomination_name)
     church = Church.objects.create(name=church_name,
                                    denomination=denomination)
     donee = Donee.objects.create(
         contact=contact,
-        ci="12345678901",
+        ci=donee_ci,
         church=church,
     )
     return donee
@@ -215,7 +224,7 @@ class PrivateDoneeAPITest(TestCase):
         payload = {
             "contact": {
                 "name": "New Name",
-                "note": {"note": "New Note"},},
+                "note": {"note": "New Note"}},
         }
 
         donee = Donee.objects.create(
@@ -229,7 +238,10 @@ class PrivateDoneeAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         donee.refresh_from_db()
-        self.assertEqual(payload["contact"]["note"]["note"], donee.contact.note.note)
+        self.assertEqual(
+            payload["contact"]["note"]["note"],
+            donee.contact.note.note
+        )
 
     def test_update_note_on_donee_update(self):
         """Test updating note on donee contact update."""
@@ -239,7 +251,7 @@ class PrivateDoneeAPITest(TestCase):
         payload = {
             "contact": {
                 "name": "New Name",
-                "note": {"note": "Updated Note"},},
+                "note": {"note": "Updated Note"}},
         }
 
         donee = Donee.objects.create(
@@ -253,7 +265,86 @@ class PrivateDoneeAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         donee.refresh_from_db()
-        self.assertEqual(payload["contact"]["note"]["note"], donee.contact.note.note)
+        self.assertEqual(
+            payload["contact"]["note"]["note"],
+            donee.contact.note.note
+        )
+
+    def test_ordering_filter(self):
+        """Test ordering filter works correctly."""
+        donee1 = create_donee(
+            contact_name="Anna",
+            contact_lastname="Abbot",
+            contact_gender='F',
+            church_name="Rama",
+        )
+        donee2 = create_donee(
+            contact_name="Zane",
+            contact_gender='M',
+            church_name="Montana",
+            denomination_name="Evangelic League",
+            donee_ci="09935467192"
+        )
+
+        res = self.client.get(f"{DONEE_URL}?ordering=contact__name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], donee1.id)
+        self.assertEqual(res.data[-1]['id'], donee2.id)
+
+        res = self.client.get(f"{DONEE_URL}?ordering=-contact__lastname")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[-1]['id'], donee1.id)
+        self.assertEqual(res.data[0]['id'], donee2.id)
+
+    def test_search_filter(self):
+        """Test search filter works as expected."""
+        donee1 = create_donee(
+            contact_name="Anna",
+            contact_lastname="Abbot",
+            contact_gender='F',
+            church_name="Rama",
+        )
+        donee2 = create_donee(
+            contact_name="Zane",
+            contact_gender='M',
+            church_name="Montana",
+            denomination_name="Evangelic League",
+            donee_ci="09935467192"
+        )
+
+        res = self.client.get(f"{DONEE_URL}?search=anna+abbot")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], donee1.id)
+
+        res = self.client.get(f"{DONEE_URL}?search=doe")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], donee2.id)
+
+    def test_fields_filter(self):
+        """Test filter by fields works as expected."""
+        donee1 = create_donee(
+            contact_name="Anna",
+            contact_lastname="Abbot",
+            contact_gender='F',
+            church_name="Rama",
+        )
+        donee2 = create_donee(
+            contact_name="Zane",
+            contact_gender='M',
+            church_name="Montana",
+            denomination_name="Evangelic League",
+            donee_ci="09935467192"
+        )
+
+        res = self.client.get(f"{DONEE_URL}?contact__gender=F")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], donee1.id)
+
+        res = self.client.get(
+            f"{DONEE_URL}?church__denomination__name=Evangelic+League"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], donee2.id)
 
 
 class DoneeModelTest(TestCase):

@@ -240,7 +240,11 @@ class DiseaseListSerializer(DiseaseSerializer):
             id__in=treatment_ids
         ).distinct()
 
-        return MedicineSerializer(unique_medicines, many=True).data
+        return MedicineSerializer(
+            unique_medicines,
+            many=True,
+            context=self.context
+        ).data
 
 
 class TreatmentSerializer(serializers.ModelSerializer):

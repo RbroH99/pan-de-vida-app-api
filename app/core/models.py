@@ -37,7 +37,8 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError('User must have an email!.')
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        role = extra_fields.pop("role", 3)
+        user = self.model(email=email, role=role, **extra_fields)
 
         user.set_password(password)
         user.save(using=self._db)
@@ -50,7 +51,7 @@ class UserManager(BaseUserManager):
 
         user.is_superuser = True
         user.is_staff = True
-        user.role = 3
+        user.role = 1
         user.set_password(password)
         user.save(using=self._db)
 

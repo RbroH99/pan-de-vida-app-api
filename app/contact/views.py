@@ -3,6 +3,9 @@ Viewsets for the contact APP.
 """
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from django_filters.rest_framework import DjangoFilterBackend
+
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -30,25 +33,38 @@ class BasePrivateViewSet(viewsets.ModelViewSet):
     """Base authorization classes viewset for private endpoints."""
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+    filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
+    filterset_fields = ['name']
+    search_fields = ['name']
+    ordering_fields = ['name']
 
 
 class NoteViewSet(BasePrivateViewSet):
     """Viewset for the note endpoints."""
     queryset = Note.objects.all()
     serializer_class = serializers.NoteSerializer
+    filter_backends = []
+    filterset_fields = []
+    search_fields = []
+    ordering_fields = []
 
 
 class ContactViewSet(BasePrivateViewSet):
     """Viewset for the Contact endpoints."""
     queryset = Contact.objects.all()
     serializer_class = serializers.ContactSerializer
+    filterset_fields = ['gender']
+    search_fields = ['name', 'lastname']
+    ordering_fields = ['name', 'lastname']
+    ordering = ['name']
+
 
 class GenderOptionsView(APIView):
     """View to get gender options. """
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    #The first option always is the not set option.
+    # The first option always is the not set option.
 
     def get(self, request, format=None):
         gender_options = [
@@ -62,6 +78,10 @@ class PhoneNumberViewSet(BasePrivateViewSet):
     """Views for the phone number API."""
     queryset = PhoneNumber.objects.all()
     serializer_class = serializers.PhoneNumberSerializer
+    filter_backends = []
+    filterset_fields = []
+    search_fields = []
+    ordering_fields = []
 
 
 class WorkingSiteViewSet(BasePrivateViewSet):
@@ -74,18 +94,30 @@ class MedicViewSet(BasePrivateViewSet):
     """Views for the medic api."""
     queryset = Medic.objects.all()
     serializer_class = serializers.MedicSerializer
+    filterset_fields = ['contact__gender', 'workingsite__name', 'specialty']
+    search_fields = ['contact__name', 'contact__lastname']
+    ordering_fields = ['contact__name', 'contact__lastname']
+    ordering = ['contact__name', 'contact__lastname']
 
 
 class DonorViewSet(BasePrivateViewSet):
     """Views for the donor api."""
     queryset = Donor.objects.all()
     serializer_class = serializers.DonorSerializer
+    filterset_fields = ['contact__gender', 'country', 'city']
+    search_fields = ['contact__name', 'contact__lastname']
+    ordering_fields = ['contact__name', 'contact__lastname']
+    ordering = ['contact__name', 'contact__lastname']
 
 
 class DoneeViewSet(BasePrivateViewSet):
     """Views for the donee api."""
     queryset = Donee.objects.all()
     serializer_class = serializers.DoneeDetailSerializer
+    filterset_fields = ['contact__gender', 'church__denomination__name']
+    search_fields = ['contact__name', 'contact__lastname']
+    ordering_fields = ['contact__name', 'contact__lastname']
+    ordering = ['contact__name', 'contact__lastname']
 
     def get_serializer_class(self):
         if self.action == 'list':

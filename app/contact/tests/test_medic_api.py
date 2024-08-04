@@ -23,9 +23,17 @@ def detail_url(medic_id):
     return reverse('contact:medic-detail', args=[medic_id])
 
 
-def create_medic(contact_name="John", spec="Pedriatician", wks="wks1"):
+def create_medic(contact_name="John",
+                 contact_lastname="Doe",
+                 contact_gender='M',
+                 spec="Pedriatician",
+                 wks="wks1"):
     """Create and return a new medic instance."""
-    contact = Contact.objects.create(name=contact_name)
+    contact = Contact.objects.create(
+        name=contact_name,
+        lastname=contact_lastname,
+        gender=contact_gender
+    )
     workingsite = WorkingSite.objects.create(name=wks)
     medic = Medic.objects.create(
         contact=contact,
@@ -111,6 +119,17 @@ class PrivateMedicAPITest(TestCase):
             password='testpass'
         )
         self.client.force_authenticate(user=self.user)
+        self.medic1 = create_medic(
+            contact_name='Albert',
+            contact_lastname='Abbott',
+            spec="Surgery"
+        )
+        self.medic2 = create_medic(
+            contact_name='Zoe',
+            contact_lastname='Zelle',
+            contact_gender='F',
+            wks="wks2"
+        )
         self.medic_data = {
             'contact': {'name': 'Jane Doe'},
             'workingsite': {'name': 'Working Site 2'},
@@ -164,3 +183,39 @@ class PrivateMedicAPITest(TestCase):
         res = self.client.delete(url)
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_ordering_filter(self):
+        """Test ordering filter works correctly."""
+        res = self.client.get(f"{MEDIC_URL}?ordering=contact__name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medic1.id)
+        self.assertEqual(res.data[-1]['id'], self.medic2.id)
+
+        res = self.client.get(f"{MEDIC_URL}?ordering=-contact__lastname")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[-1]['id'], self.medic1.id)
+        self.assertEqual(res.data[0]['id'], self.medic2.id)
+
+    def test_search_filter(self):
+        """Test search filter works as expected."""
+        res = self.client.get(f"{MEDIC_URL}?search=albert+abbott")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medic1.id)
+
+        res = self.client.get(f"{MEDIC_URL}?search=zelle")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medic2.id)
+
+    def test_fields_filter(self):
+        """Test filter by fields works as expected."""
+        res = self.client.get(f"{MEDIC_URL}?contact__gender=F")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medic2.id)
+
+        res = self.client.get(f"{MEDIC_URL}?workingsite__name=wks1")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medic1.id)
+
+        res = self.client.get(f"{MEDIC_URL}?specialty=Pedriatician")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.medic2.id)
