@@ -22,6 +22,11 @@ from core.models import (
 TREATMENT_URL = reverse('medicine:treatment-list')
 
 
+def detail_url(treatment_id):
+    """Create and return a treatment's detail URL."""
+    return reverse('medicine:treatment-detail', args=[treatment_id])
+
+
 class PublicTreatmentAPITest(TestCase):
     """Tests for unauthenticated users trying to access treatment endpoints."""
 
@@ -98,7 +103,8 @@ class PrivateTreatmentAPITest(TestCase):
         self.user = get_user_model().objects.create_user(
             id=999999,
             email='test@example.com',
-            password='testpass'
+            password='testpass',
+            role=1,
         )
         self.client.force_authenticate(user=self.user)
         self.donee = Donee.objects.create(
@@ -160,3 +166,91 @@ class PrivateTreatmentAPITest(TestCase):
         url = reverse('medicine:treatment-detail', args=[treatment.id])
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class PrivateFilteringAPITests(TestCase):
+    """Test cases for the filtering and ordering in API responses."""
+
+    def setUp(self):
+        """
+        Set up the test environment for authenticated users.
+        """
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            id=999998,
+            email='test@example.com',
+            password='testpass',
+            role=1
+        )
+        self.client.force_authenticate(user=self.user)
+        self.disease1 = Disease.objects.create(name="Alzheimer")
+        self.disease2 = Disease.objects.create(name="Zenophobia")
+        self.contact1 = Contact.objects.create(name='Anna', lastname='Abbott')
+        self.contact2 = Contact.objects.create(name='Zoe', lastname='Zelenia')
+        self.church = Church.objects.create(name="Church Name")
+        self.medicine1 = Medicine.objects.create(name="AMedicine")
+        self.medicine2 = Medicine.objects.create(name="ZMedicine")
+        self.donee1 = Donee.objects.create(
+            ci="253647835463",
+            contact=self.contact1,
+            church=self.church
+        )
+        self.donee2 = Donee.objects.create(
+            ci="343647835463",
+            contact=self.contact2,
+            church=self.church
+        )
+        self.treatment1 = Treatment.objects.create(
+            donee=self.donee1,
+            disease=self.disease1,
+        )
+        self.treatment2 = Treatment.objects.create(
+            donee=self.donee2,
+            disease=self.disease2,
+        )
+        self.client.patch(
+            detail_url(self.treatment1.id),
+            {'medicine': [self.medicine1.id]},
+            format='json'
+        )
+        self.client.patch(
+            detail_url(self.treatment2.id),
+            {'medicine': [self.medicine2.id]},
+            format='json'
+        )
+
+    def test_ordering_filter(self):
+        """Test ordering filter works correctly."""
+        res = self.client.get(f"{TREATMENT_URL}?ordering=donee__contact__name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.treatment1.id)
+        self.assertEqual(res.data[-1]['id'], self.treatment2.id)
+
+        res = self.client.get(
+            f"{TREATMENT_URL}?ordering=-donee__contact__lastname"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[-1]['id'], self.treatment1.id)
+        self.assertEqual(res.data[0]['id'], self.treatment2.id)
+
+    def test_search_filter(self):
+        """Test search filter works as expected."""
+        res = self.client.get(f"{TREATMENT_URL}?anna")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.treatment1.id)
+
+        res = self.client.get(f"{TREATMENT_URL}?search=zele")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.treatment2.id)
+
+    def test_fields_filter(self):
+        """Test filter by fields works as expected."""
+        res = self.client.get(f"{TREATMENT_URL}?medicine=AMedicine")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['id'], self.medicine1.id)
+
+        res = self.client.get(f"{TREATMENT_URL}?disease=Zenophobia")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['id'], self.medicine2.id)

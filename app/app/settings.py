@@ -25,8 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'changeme')
 
 # SECURITY WARNING: don't run with debug turned on in production!
+<<<<<<< HEAD
 #DEBUG =  bool(int(os.environ.get('DEBUG', 0)))
 DEBUG = False
+=======
+# DEBUG =  bool(int(os.environ.get('DEBUG', 0)))
+>>>>>>> d6dea6f80d4937c75b3cdedaeb8688697f7dc65b
 
 if DEBUG:
     ALLOWED_HOSTS = ['*']
@@ -51,6 +55,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework',
     'drf_spectacular',
+    'django_countries',
+    'django_filters',
     'corsheaders',
     'user',
     'core',
@@ -95,11 +101,11 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 if DEBUG:
     DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 else:
     DATABASES = {
         'default': {
@@ -155,7 +161,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -177,6 +182,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 SIMPLE_JWT = {
@@ -184,9 +190,9 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'TOKEN_OBTAIN_SERIALIZER': 'core.serializers.RoleIncludedTokenObtainSerializer',
 }
 
 SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
 }
-

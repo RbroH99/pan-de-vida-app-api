@@ -39,6 +39,19 @@ class MunicipalitySerializer(BaseNameOnlyModelSerializer):
     def get_province(self, obj):
         return obj.get_province_display()
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        representation['province'] = next(
+            (
+                value for key,
+                value in PROVINCES_CUBA if key == instance.province
+            ),
+            "Unknown"
+        )
+
+        return representation
+
 
 class DenominationSerializer(BaseNameOnlyModelSerializer):
     """Serializer for the denomination objects."""

@@ -73,6 +73,7 @@ class PrivateMedicinePresentationAPITests(TestCase):
         self.user = get_user_model().objects.create_user(
             id=9999,
             email="user2@example.com",
+            role=1,
             )
         self.client = APIClient()
         self.client.force_authenticate(self.user)

@@ -25,11 +25,12 @@ def detail_url(church_id):
 
 def create_church(name="Test Church",
                   denomination_name="Test Denomination",
-                  municipality_name="Test Municipality"):
+                  municipality_name="Test Municipality",
+                  province="UNK"):
     """Create and return a new church instance."""
     denomination = Denomination.objects.create(name=denomination_name)
     municipality = Municipality.objects.create(name=municipality_name,
-                                               province='UNK')
+                                               province=province)
     church = Church.objects.create(
         name=name,
         denomination=denomination,
@@ -155,3 +156,74 @@ class PrivateChurchAPITest(TestCase):
         url = detail_url(church.id)
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class PrivateFilteringAPITests(TestCase):
+    """Test cases for the filtering and ordering in API responses."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            id=9997,
+            email='user@example.com',
+            role=1
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+        self.church1 = create_church(
+            name="AChurch",
+            denomination_name="ADenomination",
+            municipality_name="AMunicipality",
+            province="ART"
+        )
+        self.church2 = create_church(
+            name="ZChurch",
+            denomination_name="ZDenomination",
+            municipality_name="ZMunicipality",
+            province="UNK"
+        )
+
+    def test_ordering_filter(self):
+        """Test ordering filter works correctly."""
+        res = self.client.get(f"{CHURCH_URL}?ordering=name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.church1.id)
+        self.assertEqual(res.data[-1]['id'], self.church2.id)
+
+        res = self.client.get(f"{CHURCH_URL}?ordering=-name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[-1]['id'], self.church1.id)
+        self.assertEqual(res.data[0]['id'], self.church2.id)
+
+    def test_search_filter(self):
+        """Test search filter works as expected."""
+        res = self.client.get(f"{CHURCH_URL}?adeno")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.church1.id)
+
+        res = self.client.get(f"{CHURCH_URL}?search=z")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.church2.id)
+
+    def test_fields_filter(self):
+        """Test filter by fields works as expected."""
+        res = self.client.get(f"{CHURCH_URL}?name=AChurch")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.church1.id)
+
+        res = self.client.get(
+            f"{CHURCH_URL}?denomination__name=ZDenomination"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.church2.id)
+
+        res = self.client.get(
+            f"{CHURCH_URL}?municipality__name=AMunicipality"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.church1.id)
+
+        res = self.client.get(
+            f"{CHURCH_URL}?municipality__province=UNK"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], self.church2.id)

@@ -260,6 +260,29 @@ class DonorSerializer(CountryFieldMixin, BaseContactChildrenSerializer):
         fields = BaseContactChildrenSerializer.Meta.fields + \
             ['country', 'city']
 
+    def create(self, validated_data):
+        """Create a new Donor instance."""
+        contact = validated_data.pop('contact', None)
+
+        contact_instance = self._safe_create_contact(contact)
+
+        donor = Donor.objects.create(
+            contact=contact_instance,
+            **validated_data
+        )
+
+        return donor
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        representation['country'] = {
+            "code": instance.country.code,
+            "name": instance.country.name,
+        }
+
+        return representation
+
 
 class DoneeSerializer(BaseContactChildrenSerializer):
     """Serializer for donee objects."""
@@ -296,7 +319,7 @@ class DoneeDetailSerializer(DoneeSerializer):
         return obj.code
 
     def create(self, validated_data):
-        """Create a new Donee innstance."""
+        """Create a new Donee instance."""
         inscript = validated_data.pop('inscript', None)
         contact = validated_data.pop('contact', None)
 

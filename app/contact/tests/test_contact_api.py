@@ -25,7 +25,7 @@ def detail_url(contact_id):
 
 def create_user(id=99999, email="user@example.com"):
     """Creates and return a new user."""
-    user = get_user_model().objects.create_user(id=id, email=email)
+    user = get_user_model().objects.create_user(id=id, email=email, role=1)
 
     return user
 
@@ -156,3 +156,60 @@ class PrivateContactAPITests(TestCase):
         res = self.client.post(CONTACTS_URL, payload, format='json')
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_ordering_filter(self):
+        """Test ordering filter works correctly."""
+        Contact.objects.create(name="Albert", lastname='Abbot')
+        Contact.objects.create(name="Zane", lastname='Zora')
+
+        res = self.client.get(f"{CONTACTS_URL}?ordering=name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['name'], "Albert")
+        self.assertEqual(res.data[-1]['name'], "Zane")
+
+        res = self.client.get(f"{CONTACTS_URL}?ordering=-name")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[-1]['name'], "Albert")
+        self.assertEqual(res.data[0]['name'], "Zane")
+
+        res = self.client.get(f"{CONTACTS_URL}?ordering=lastname")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['lastname'], "Abbot")
+        self.assertEqual(res.data[-1]['lastname'], "Zora")
+
+        res = self.client.get(f"{CONTACTS_URL}?ordering=-lastname")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[-1]['lastname'], "Abbot")
+        self.assertEqual(res.data[0]['lastname'], "Zora")
+
+    def test_search_filter(self):
+        """Test search filter works as expected."""
+        Contact.objects.create(name="Albert", lastname='Abbot')
+        Contact.objects.create(name="Zane", lastname='Zora')
+
+        res = self.client.get(f"{CONTACTS_URL}?search=zora")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['lastname'], 'Zora')
+        self.assertEqual(len(res.data), 1)
+
+        res = self.client.get(f"{CONTACTS_URL}?search=albe")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['name'], 'Albert')
+        self.assertEqual(len(res.data), 1)
+
+        res = self.client.get(f"{CONTACTS_URL}?search=a")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 2)
+
+        res = self.client.get(f"{CONTACTS_URL}?search=l")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+
+    def test_fields_filter(self):
+        """Test filter by fields works as expected."""
+        Contact.objects.create(name="Albert", lastname='Abbot', gender='M')
+        Contact.objects.create(name="Zane", lastname='Zora', gender='F')
+
+        res = self.client.get(f"{CONTACTS_URL}?gender=M")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)

@@ -21,10 +21,11 @@ from drf_spectacular.views import (
 )
 
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView
 )
+
+from core.views import RoleIncludedTokenObtainView
 
 from django.contrib import admin
 from django.urls import path, include
@@ -48,7 +49,7 @@ urlpatterns = [
     path('user/', include('user.urls')),
     path(
         'api/token/',
-        TokenObtainPairView.as_view(),
+        RoleIncludedTokenObtainView.as_view(),
         name='token_obtain_pair'),
     path(
         'api/token/refresh/',

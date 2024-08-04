@@ -12,6 +12,7 @@ from rest_framework import status
 CREATE_USER_URL = reverse('user:create')
 TOKEN_PAIR_URL = reverse('token_obtain_pair')
 ME_URL = reverse('user:me')
+ADMIN_URL = reverse('user:admin-list')
 
 
 def create_user(**params):
@@ -120,6 +121,7 @@ class PrivateUserTests(TestCase):
             email='test@exmple.com',
             password='testpass123',
             name='Test Name',
+            role=1
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
@@ -132,6 +134,7 @@ class PrivateUserTests(TestCase):
         self.assertEqual(res.data, {
             'name': self.user.name,
             'email': self.user.email,
+            'role': 1
         })
 
     def test_post_me_not_allowed(self):
@@ -142,7 +145,7 @@ class PrivateUserTests(TestCase):
 
     def test_update_user_profile(self):
         """Test updating user profile for the authenticated user."""
-        payload = {'name': 'Updated Name', 'password': 'newpasswoed123'}
+        payload = {'name': 'Updated Name', 'password': 'newpassword123'}
 
         res = self.client.patch(ME_URL, payload)
 
@@ -150,3 +153,65 @@ class PrivateUserTests(TestCase):
         self.assertEqual(self.user.name, payload['name'])
         self.assertTrue(self.user.check_password(payload['password']))
         self.assertTrue(res.status_code, status.HTTP_200_OK)
+
+
+class RoleBasedTests(TestCase):
+    """Test actions based in user role."""
+
+    def setUp(self):
+        # users declarations
+        self.admin_user = create_user(
+            email='testadmin@exmple.com',
+            password='testpass123',
+            name='Test Admin',
+            role=1
+        )
+
+        self.agent_user = create_user(
+            email='testagent@exmple.com',
+            password='testpass123',
+            name='Test Agent',
+            role=2
+        )
+
+        self.donor_user = create_user(
+            email='testdonor@exmple.com',
+            password='testpass123',
+            name='Test Donor'
+        )
+
+        # Clients definitions
+        self.admin_client = APIClient()
+        self.admin_client.force_authenticate(user=self.admin_user)
+
+        self.agent_client = APIClient()
+        self.agent_client.force_authenticate(user=self.agent_user)
+
+        self.donor_client = APIClient()
+        self.donor_client.force_authenticate(user=self.donor_user)
+
+    def test_admin_retrieve_user_list(self):
+        """Test admin users can retrieve users in the system."""
+        res = self.admin_client.get(ADMIN_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertGreater(len(res.data), 1)
+
+    def test_agent_retrieve_user_list(self):
+        """Test agent users can't retrieve users in the system."""
+        res = self.agent_client.get(ADMIN_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_users_default_role_is_donor(self):
+        """Test users default role on creation is donor."""
+        res = self.donor_client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["role"], 3)
+
+    def test_donor_retrieve_user_list(self):
+        """Test donor users can't retrieve users in the system."""
+        res = self.donor_client.get(ADMIN_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)

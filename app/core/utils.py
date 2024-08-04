@@ -5,6 +5,45 @@ from django.utils.translation import gettext as _
 
 from rest_framework import serializers
 
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+class CustomTokenGenerator(RefreshToken):
+    @classmethod
+    def _get_validated_token(cls, user):
+        """
+        Override this method to add custom claims to the token.
+        """
+        token = cls.for_user(user)
+        return token.access_token
+
+    @classmethod
+    def get_token(cls, user):
+        """
+        Returns a valid token for a user with a given username.
+        """
+        token = cls._for_user_claims(user)
+        return token
+
+    @classmethod
+    def _for_user_claims(cls, user):
+        """
+        Create a new token instance and populate the default claims
+        by calling the constructor.
+        """
+        token = cls()
+        if user is None:
+            raise ValueError("Usuario no encontrado.")
+        token.payload["role"] = user.role
+        return token
+
+
+role_choices = (
+    (1, 'admin'),
+    (2, 'agent'),
+    (3, 'donor'),
+)
+
 measurement_choices = (
     ('mL', _('Milliliters')),
     ('oz', _('Ounce')),
@@ -49,7 +88,7 @@ def name_validator(model_ref, name):
     names_list = model_ref.objects.all().values("name")
     if name in names_list:
         raise serializers.ValidationError(
-            (f"Name already exists in the DB."),
+            ("Name already exists in the DB."),
             code='unique'
         )
     return name
