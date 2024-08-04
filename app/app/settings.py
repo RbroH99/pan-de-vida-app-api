@@ -25,7 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'changeme')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG =  bool(int(os.environ.get('DEBUG', 0)))
+
+#DEBUG =  bool(int(os.environ.get('DEBUG', 0)))
 DEBUG = False
 
 if DEBUG:
