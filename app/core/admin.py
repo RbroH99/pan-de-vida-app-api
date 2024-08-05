@@ -45,35 +45,35 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
-    def save_model(self, request, obj, form, change):
-        if not change:
-            if request.POST.get('is_superuser'):
-                obj = self.model.objects.create_superuser(
-                    email=request.POST.get('email'),
-                    password=request.POST.get('password1'),
-                    name=request.POST.get('name'),
-                )
-            else:
-                obj = self.model.objects.create_user(
-                    email=request.POST.get('email'),
-                    password=request.POST.get('password1'),
-                    name=request.POST.get('name')
-                )
-        else:
-            for key, value in request.POST.items():
-                if type(value) is str:
-                    if value.lower() == 'true' or value.lower() == 'false':
-                        if value.lower() == 'true':
-                            value = True
-                        elif value.lower() == 'false':
-                            value = False
-                if 'password' not in key:
-                    setattr(obj, key, value)
-                else:
-                    obj.set_password(key)
-            obj.save()
+    # def save_model(self, request, obj, form, change):
+    #     if not change:
+    #         if request.POST.get('is_superuser'):
+    #             obj = self.model.objects.create_superuser(
+    #                 email=request.POST.get('email'),
+    #                 password=request.POST.get('password1'),
+    #                 name=request.POST.get('name'),
+    #             )
+    #         else:
+    #             obj = self.model.objects.create_user(
+    #                 email=request.POST.get('email'),
+    #                 password=request.POST.get('password1'),
+    #                 name=request.POST.get('name')
+    #             )
+    #     else:
+    #         for key, value in request.POST.items():
+    #             if type(value) is str:
+    #                 if value.lower() == 'true' or value.lower() == 'false':
+    #                     if value.lower() == 'true':
+    #                         value = True
+    #                     elif value.lower() == 'false':
+    #                         value = False
+    #             if 'password' not in key:
+    #                 setattr(obj, key, value)
+    #             else:
+    #                 obj.set_password(key)
+    #         obj.save()
 
-        return obj
+    #     return obj
 
 
 admin.site.register(models.User, UserAdmin)
