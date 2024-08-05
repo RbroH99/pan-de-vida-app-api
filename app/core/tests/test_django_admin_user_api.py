@@ -20,7 +20,7 @@ class TestUserAdminSaveForm(TestCase):
             'password1': 'testpass123',
             'password2': 'testpass123',
             'name': 'Test User',
-            'is_active': True,
+            'is_active': 'True',
             'is_staff': False,
             'is_superuser': False,
             'role': 1,

@@ -61,6 +61,12 @@ class UserAdmin(BaseUserAdmin):
                 )
         else:
             for key, value in request.POST.items():
+                if type(value) is str:
+                    if value.lower() == 'true' or value.lower() == 'false':
+                        if value.lower() == 'true':
+                            value = True
+                        elif value.lower() == 'false':
+                            value = False
                 if 'password' not in key:
                     setattr(obj, key, value)
                 else:
