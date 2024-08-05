@@ -27,13 +27,13 @@ class TestUserAdminSaveForm(TestCase):
         }
 
     def test_create_regular_user(self):
-        response = self.user_admin.save_form(self.request, None, False)
+        response = self.user_admin.save_model(self.request, None, False)
         self.assertTrue(isinstance(response, User))
         self.assertEqual(response.email, 'test@example.com')
 
     def test_create_superuser(self):
         self.request.POST['is_superuser'] = True
-        response = self.user_admin.save_form(self.request, None, False)
+        response = self.user_admin.save_model(self.request, None, False)
         self.assertTrue(isinstance(response, User))
         self.assertTrue(response.is_superuser)
 
@@ -47,7 +47,7 @@ class TestUserAdminSaveForm(TestCase):
         self.request.POST['email'] = 'updated@example.com'
         self.request.POST['name'] = 'Updated User'
         self.request.POST['role'] = 2
-        self.user_admin.save_form(self.request, user, True)
+        self.user_admin.save_model(self.request, user, True)
         updated_user = User.objects.get(id=user.id)
         self.assertEqual(updated_user.name, 'Updated User')
         self.assertEqual(updated_user.role, 2)

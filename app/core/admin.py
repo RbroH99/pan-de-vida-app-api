@@ -45,7 +45,7 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
-    def save_form(self, request, instance, change):
+    def save_model(self, request, instance, change):
         if not change:
             if request.POST.get('is_superuser'):
                 instance = self.model.objects.create_superuser(
