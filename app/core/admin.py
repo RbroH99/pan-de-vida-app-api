@@ -46,19 +46,21 @@ class UserAdmin(BaseUserAdmin):
     )
 
     def save_form(self, request, form, change):
-        if form.cleaned_data.get('is_superuser'):
-            form.instance = self.model.objects.create_superuser(
-                email=form.cleaned_data['email'],
-                password=form.cleaned_data['password1'],
-                name=form.cleaned_data['name'],
-            )
+        if not change:
+            if form.cleaned_data.get('is_superuser'):
+                form.instance = self.model.objects.create_superuser(
+                    email=form.cleaned_data['email'],
+                    password=form.cleaned_data['password1'],
+                    name=form.cleaned_data['name'],
+                )
+            else:
+                form.instance = self.model.objects.create_user(
+                    email=form.cleaned_data['email'],
+                    password=form.cleaned_data['password1'],
+                    name=form.cleaned_data['name'],
+                )
         else:
-            form.instance = self.model.objects.create_user(
-                email=form.cleaned_data['email'],
-                password=form.cleaned_data['password1'],
-                name=form.cleaned_data['name'],
-            )
-        return super().save_form(request, form, change)
+            form.save()
 
 
 admin.site.register(models.User, UserAdmin)
