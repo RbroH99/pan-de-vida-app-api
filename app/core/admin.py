@@ -45,22 +45,29 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
-    def save_form(self, request, form, change):
+    def save_form(self, request, instance, change):
         if not change:
-            if form.cleaned_data.get('is_superuser'):
-                form.instance = self.model.objects.create_superuser(
-                    email=form.cleaned_data['email'],
-                    password=form.cleaned_data['password1'],
-                    name=form.cleaned_data['name'],
+            if request.POST.get('is_superuser'):
+                instance = self.model.objects.create_superuser(
+                    email=request.POST.get('email'),
+                    password=request.POST.get('password1'),
+                    name=request.POST.get('name'),
                 )
             else:
-                form.instance = self.model.objects.create_user(
-                    email=form.cleaned_data['email'],
-                    password=form.cleaned_data['password1'],
-                    name=form.cleaned_data['name'],
+                instance = self.model.objects.create_user(
+                    email=request.POST.get('email'),
+                    password=request.POST.get('password1'),
+                    name=request.POST.get('name')
                 )
         else:
-            form.save()
+            for key, value in request.POST.items():
+                if 'password' not in key:
+                    setattr(instance, key, value)
+                else:
+                    instance.set_password(key)
+            instance.save()
+
+        return instance
 
 
 admin.site.register(models.User, UserAdmin)

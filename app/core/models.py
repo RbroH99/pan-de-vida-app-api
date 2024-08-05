@@ -45,10 +45,12 @@ class UserManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, email, password):
+    def create_superuser(self, email, password, name=''):
         """Create superuser with given details."""
         user = self.model(email=email)
 
+        if name:
+            user.name = name
         user.is_superuser = True
         user.is_staff = True
         user.role = 1
