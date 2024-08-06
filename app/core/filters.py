@@ -1,6 +1,7 @@
 from django_filters import (
     rest_framework as filters,
-    CharFilter
+    CharFilter,
+    NumberFilter,
 )
 from .models import Treatment, Medicine
 from medicine.serializers import TreatmentSerializer
@@ -25,10 +26,14 @@ class TreatmentMedicineFilter(filters.Filter):
 class TreatmentFilter(filters.FilterSet):
     medicine = TreatmentMedicineFilter()
     disease = CharFilter(method='filter_by_disease_name')
+    donee = NumberFilter(method='filter_by_donee')
 
     class Meta:
         model = Treatment
-        fields = ['medicine', 'disease']
+        fields = ['medicine', 'disease', 'donee']
 
     def filter_by_disease_name(self, queryset, name, value):
         return queryset.filter(disease__name=value)
+
+    def filter_by_donee(self, queryset, name, value):
+        return queryset.filter(donee__id=value)

@@ -121,8 +121,6 @@ class TreatmentViewSet(BaseNameOnlyPrivateModel):
     serializer_class = serializers.TreatmentSerializer
     queryset = Treatment.objects.all()
     filterset_class = TreatmentFilter
-    search_fields = ['donee__id',
-                     'donee__contact__name',
-                     'donee__contact__lastname']
+    search_fields = ['donee__contact__name', 'donee__contact__lastname']
     ordering_fields = ['donee__contact__name', 'donee__contact__lastname']
     ordering = ['donee__contact__name', 'donee__contact__lastname']
