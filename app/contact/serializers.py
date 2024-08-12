@@ -301,23 +301,6 @@ class DoneeSerializer(BaseContactChildrenSerializer):
     def get_code(self, obj):
         return obj.code
 
-
-class DoneeDetailSerializer(DoneeSerializer):
-    """Serializer for donee objects."""
-    church = serializers.PrimaryKeyRelatedField(
-        queryset=Church.objects.all(),
-        required=True
-    )
-
-    class Meta(BaseContactChildrenSerializer.Meta):
-        model = Donee
-        fields = BaseContactChildrenSerializer.Meta.fields + \
-            ['code', 'ci', 'inscript', 'church']
-        read_only_fields = ['id', 'code']
-
-    def get_code(self, obj):
-        return obj.code
-
     def create(self, validated_data):
         """Create a new Donee instance."""
         inscript = validated_data.pop('inscript', None)
@@ -335,3 +318,20 @@ class DoneeDetailSerializer(DoneeSerializer):
         )
 
         return donee
+
+
+class DoneeDetailSerializer(DoneeSerializer):
+    """Serializer for donee objects."""
+    church = serializers.PrimaryKeyRelatedField(
+        queryset=Church.objects.all(),
+        required=True
+    )
+
+    class Meta(BaseContactChildrenSerializer.Meta):
+        model = Donee
+        fields = BaseContactChildrenSerializer.Meta.fields + \
+            ['code', 'ci', 'inscript', 'church']
+        read_only_fields = ['id', 'code']
+
+    def get_code(self, obj):
+        return obj.code
