@@ -144,7 +144,10 @@ class DoneeViewSet(BasePrivateViewSet):
     """Views for the donee api."""
     queryset = Donee.objects.all()
     serializer_class = serializers.DoneeDetailSerializer
-    filterset_fields = ['contact__gender', 'church__denomination__name']
+    filterset_fields = [
+        'contact__gender',
+        'church__denomination__name',
+        'church__municipality__province']
     search_fields = ['contact__name', 'contact__lastname']
     ordering_fields = ['contact__name', 'contact__lastname']
     ordering = ['contact__name', 'contact__lastname']

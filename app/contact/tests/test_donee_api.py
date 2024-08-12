@@ -31,6 +31,8 @@ def create_donee(contact_name="John",
                  contact_lastname='Doe',
                  contact_gender='M',
                  church_name="Church Name",
+                 municipality_name="Municipality Name",
+                 municipality_province='HAB',
                  denomination_name="Test Denomination",
                  donee_ci="12345678901"):
     """Create and return a new donee instance."""
@@ -40,8 +42,11 @@ def create_donee(contact_name="John",
         gender=contact_gender
     )
     denomination = Denomination.objects.create(name=denomination_name)
+    municipality = Municipality.objects.create(name=municipality_name,
+                                               province=municipality_province)
     church = Church.objects.create(name=church_name,
-                                   denomination=denomination)
+                                   denomination=denomination,
+                                   municipality=municipality)
     donee = Donee.objects.create(
         contact=contact,
         ci=donee_ci,
@@ -277,6 +282,7 @@ class PrivateDoneeAPITest(TestCase):
             contact_lastname="Abbot",
             contact_gender='F',
             church_name="Rama",
+            municipality_name="Municipality 1"
         )
         donee2 = create_donee(
             contact_name="Zane",
@@ -303,13 +309,15 @@ class PrivateDoneeAPITest(TestCase):
             contact_lastname="Abbot",
             contact_gender='F',
             church_name="Rama",
+            municipality_name="Municipality 1"
         )
         donee2 = create_donee(
             contact_name="Zane",
             contact_gender='M',
             church_name="Montana",
             denomination_name="Evangelic League",
-            donee_ci="09935467192"
+            donee_ci="09935467192",
+            municipality_province="HLG"
         )
 
         res = self.client.get(f"{DONEE_URL}?search=anna+abbot")
@@ -327,18 +335,27 @@ class PrivateDoneeAPITest(TestCase):
             contact_lastname="Abbot",
             contact_gender='F',
             church_name="Rama",
+            municipality_name="Municipality 1"
         )
         donee2 = create_donee(
             contact_name="Zane",
             contact_gender='M',
             church_name="Montana",
             denomination_name="Evangelic League",
-            donee_ci="09935467192"
+            donee_ci="09935467192",
+            municipality_province="HLG"
         )
 
         res = self.client.get(f"{DONEE_URL}?contact__gender=F")
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data[0]['id'], donee1.id)
+
+        res = self.client.get(
+            f"{DONEE_URL}?church__municipality__province=HAB"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], donee1.id)
+        self.assertEqual(len(res.data), 1)
 
         res = self.client.get(
             f"{DONEE_URL}?church__denomination__name=Evangelic+League"
