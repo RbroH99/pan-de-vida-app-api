@@ -207,6 +207,7 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
                     )
                 note_instance = Note.objects.create(note=note["note"])
                 contact_instance.note = note_instance
+                contact_instance.save()
         return contact_instance
 
 
