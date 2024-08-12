@@ -22,5 +22,8 @@ app_name = 'contact'
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('gender-choices/', views.GenderOptionsView.as_view(), name='gender-choices'),
+    path(
+        'gender-choices/', views.GenderOptionsView.as_view(),
+        name='gender-choices'
+    ),
 ]

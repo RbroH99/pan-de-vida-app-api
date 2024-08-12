@@ -18,4 +18,5 @@ app_name = 'church'
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('provinces/', views.ProvincesOptionsView.as_view(), name='provinces'),
 ]

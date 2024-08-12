@@ -65,7 +65,7 @@ class ChurchViewSet(BasePrivateViewSet):
         return self.serializer_class
 
 
-class GenderOptionsView(APIView):
+class ProvincesOptionsView(APIView):
     """View to get gender options. """
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
