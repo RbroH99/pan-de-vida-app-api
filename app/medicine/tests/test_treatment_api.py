@@ -256,7 +256,6 @@ class PrivateFilteringAPITests(TestCase):
         self.assertEqual(res.data[0]['id'], self.treatment2.id)
 
         res = self.client.get(f"{TREATMENT_URL}?donee={self.donee1.id}")
-        print(res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['id'], self.treatment1.id)

@@ -38,6 +38,25 @@ class BasePrivateViewSet(viewsets.ModelViewSet):
     search_fields = ['name']
     ordering_fields = ['name']
 
+    def _contact_children_destroy(self, request, *args, **kwargs):
+        """Deletes a donee instance with his assossiated contact."""
+        try:
+            instance = self.get_object()
+            contact = instance.contact
+
+            if contact:
+                contact.delete()
+
+            self.perform_destroy(instance)
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            print(f"Error during destruction: {e}")
+            return Response(
+                {"detail": f"Error during destruction: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 class NoteViewSet(BasePrivateViewSet):
     """Viewset for the note endpoints."""
@@ -99,6 +118,10 @@ class MedicViewSet(BasePrivateViewSet):
     ordering_fields = ['contact__name', 'contact__lastname']
     ordering = ['contact__name', 'contact__lastname']
 
+    def destroy(self, request, *args, **kwargs):
+        """Deletes a medic instance with his assossiated contact."""
+        return self._contact_children_destroy(request, *args, **kwargs)
+
 
 class DonorViewSet(BasePrivateViewSet):
     """Views for the donor api."""
@@ -108,6 +131,10 @@ class DonorViewSet(BasePrivateViewSet):
     search_fields = ['contact__name', 'contact__lastname']
     ordering_fields = ['contact__name', 'contact__lastname']
     ordering = ['contact__name', 'contact__lastname']
+
+    def destroy(self, request, *args, **kwargs):
+        """Deletes a donor instance with his assossiated contact."""
+        return self._contact_children_destroy(request, *args, **kwargs)
 
 
 class DoneeViewSet(BasePrivateViewSet):
@@ -124,3 +151,7 @@ class DoneeViewSet(BasePrivateViewSet):
             return serializers.DoneeSerializer
         else:
             return self.serializer_class
+
+    def destroy(self, request, *args, **kwargs):
+        """Deletes a donee instance with his assossiated contact."""
+        return self._contact_children_destroy(request, *args, **kwargs)
