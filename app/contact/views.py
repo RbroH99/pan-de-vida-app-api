@@ -43,8 +43,11 @@ class BasePrivateViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             contact = instance.contact
+            note = contact.note
 
             if contact:
+                if note:
+                    note.delete()
                 contact.delete()
 
             self.perform_destroy(instance)
