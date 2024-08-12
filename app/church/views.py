@@ -5,10 +5,13 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django_filters.rest_framework import DjangoFilterBackend
 
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.views import APIView
 from rest_framework import (
     viewsets,
+    status,
 )
 
 from church import serializers
@@ -18,6 +21,8 @@ from core.models import (
     Denomination,
     Church
 )
+
+from core.utils import PROVINCES_CUBA
 
 
 class BasePrivateViewSet(viewsets.ModelViewSet):
@@ -58,3 +63,16 @@ class ChurchViewSet(BasePrivateViewSet):
             return serializers.ChurchSerializer
 
         return self.serializer_class
+
+
+class GenderOptionsView(APIView):
+    """View to get gender options. """
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, format=None):
+        provinces_choices = [
+            {'label': choice[1], 'value': choice[0]}
+            for choice in PROVINCES_CUBA
+        ]
+        return Response(provinces_choices, status=status.HTTP_200_OK)
