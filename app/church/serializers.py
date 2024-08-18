@@ -89,6 +89,21 @@ class ChurchSerializer(BaseNameOnlyModelSerializer):
         """Validate priest info for the church."""
         return self.contact_validation(priest_info)
 
+
+class ChurchDetailSerializer(ChurchSerializer):
+    """Serializer for the detail church endpoint."""
+    facilitator = ContactSerializer(read_only=False, required=False)
+    note = NoteSerializer(required=False)
+
+    class Meta(ChurchSerializer.Meta):
+        fields = ChurchSerializer.Meta.fields + \
+            ['facilitator',
+             'note']
+
+    def validate_facilitator(self, facilitator_info):
+        """Validate facilitator info for the church."""
+        return self.contact_validation(facilitator_info)
+
     def create(self, validated_data):
         """Create a new church instance."""
         municipality = validated_data.pop('municipality', None)
@@ -110,18 +125,3 @@ class ChurchSerializer(BaseNameOnlyModelSerializer):
         )
 
         return church
-
-
-class ChurchDetailSerializer(ChurchSerializer):
-    """Serializer for the detail church endpoint."""
-    facilitator = ContactSerializer(read_only=False, required=False)
-    note = NoteSerializer(required=False)
-
-    class Meta(ChurchSerializer.Meta):
-        fields = ChurchSerializer.Meta.fields + \
-            ['facilitator',
-             'note']
-
-    def validate_facilitator(self, facilitator_info):
-        """Validate facilitator info for the church."""
-        return self.contact_validation(facilitator_info)
