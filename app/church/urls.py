@@ -8,7 +8,7 @@ from rest_framework.routers import DefaultRouter
 
 
 router = DefaultRouter()
-router.register('municipalitys', views.MunicipalityViewSet)
+router.register('municipalities', views.MunicipalityViewSet)
 router.register('denominations', views.DenominationViewSet)
 router.register('churches', views.ChurchViewSet)
 
