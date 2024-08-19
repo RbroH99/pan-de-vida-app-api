@@ -10,7 +10,7 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register('municipalitys', views.MunicipalityViewSet)
 router.register('denominations', views.DenominationViewSet)
-router.register('churchs', views.ChurchViewSet)
+router.register('churches', views.ChurchViewSet)
 
 
 app_name = 'church'
