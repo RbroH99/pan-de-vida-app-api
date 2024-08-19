@@ -8,6 +8,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from church import serializers
+
 from core.models import (
     Denomination,
     Municipality,
@@ -156,6 +158,19 @@ class PrivateChurchAPITest(TestCase):
         url = detail_url(church.id)
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_denomination_returned_as_object(self):
+        """Test denomination of church returned as dict."""
+        church = create_church()
+
+        denomination = serializers.DenominationSerializer(
+            church.denomination
+        ).data
+        url = detail_url(church.id)
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['denomination'], denomination)
 
 
 class PrivateFilteringAPITests(TestCase):

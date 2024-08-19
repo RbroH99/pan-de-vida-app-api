@@ -100,6 +100,15 @@ class ChurchDetailSerializer(ChurchSerializer):
             ['facilitator',
              'note']
 
+    def to_representation(self, obj):
+        representation = super().to_representation(obj)
+
+        representation["denomination"] = DenominationSerializer(
+            obj.denomination
+        ).data
+
+        return representation
+
     def validate_facilitator(self, facilitator_info):
         """Validate facilitator info for the church."""
         return self.contact_validation(facilitator_info)
