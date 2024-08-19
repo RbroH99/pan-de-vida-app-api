@@ -89,6 +89,15 @@ class ChurchSerializer(BaseNameOnlyModelSerializer):
         """Validate priest info for the church."""
         return self.contact_validation(priest_info)
 
+    def to_representation(self, obj):
+        representation = super().to_representation(obj)
+
+        representation["denomination"] = DenominationSerializer(
+            obj.denomination
+        ).data
+
+        return representation
+
 
 class ChurchDetailSerializer(ChurchSerializer):
     """Serializer for the detail church endpoint."""
@@ -99,15 +108,6 @@ class ChurchDetailSerializer(ChurchSerializer):
         fields = ChurchSerializer.Meta.fields + \
             ['facilitator',
              'note']
-
-    def to_representation(self, obj):
-        representation = super().to_representation(obj)
-
-        representation["denomination"] = DenominationSerializer(
-            obj.denomination
-        ).data
-
-        return representation
 
     def validate_facilitator(self, facilitator_info):
         """Validate facilitator info for the church."""
