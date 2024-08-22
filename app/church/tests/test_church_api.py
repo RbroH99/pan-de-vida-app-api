@@ -172,6 +172,38 @@ class PrivateChurchAPITest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['denomination'], denomination)
 
+    def test_create_church_with_new_priest_data(self):
+        """Test creating a new Church with unexisting priest info."""
+        payload = {
+            "name": "New Church Name",
+            "denomination": self.denomination.id,
+            "priest": {
+                "name": "Test Priest",
+            }
+        }
+
+        res = self.client.post(CHURCH_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data["priest"]['name'], payload['priest']['name'])
+
+    def test_create_church_with_new_facilitator_data(self):
+        """Test creating a new Church with unexisting facilitator info."""
+        payload = {
+            "name": "New Church Name",
+            "denomination": self.denomination.id,
+            "facilitator": {
+                "name": "Test Facilitator",
+            }
+        }
+
+        res = self.client.post(CHURCH_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data["facilitator"]['name'],
+                         payload['facilitator']['name']
+                         )
+
 
 class PrivateFilteringAPITests(TestCase):
     """Test cases for the filtering and ordering in API responses."""

@@ -10,12 +10,14 @@ from core.models import (
     Municipality,
     Denomination,
     Church,
-    Note
+    Note,
+    Contact
 )
 from contact.serializers import (
     ContactSerializer,
     NoteSerializer,
-    DonorSerializer
+    DonorSerializer,
+    BaseContactChildrenSerializer
 )
 
 
@@ -118,6 +120,9 @@ class ChurchDetailSerializer(ChurchSerializer):
         municipality = validated_data.pop('municipality', None)
         note = validated_data.pop('note', None)
         inscript = validated_data.pop('inscript', None)
+        priest = validated_data.pop('priest', None)
+        facilitator = validated_data.pop('facilitator', None)
+
         if not inscript:
             inscript = timezone.now().date()
         if municipality:
@@ -132,5 +137,23 @@ class ChurchDetailSerializer(ChurchSerializer):
             note=note,
             inscript=inscript
         )
+
+        if priest:
+            if priest not in Contact.objects.all():
+                priest_instance = BaseContactChildrenSerializer.\
+                    _safe_create_contact(self, priest)
+            else:
+                priest_instance = priest
+            church.priest = priest_instance
+
+        if facilitator:
+            if priest not in Contact.objects.all():
+                facilitator_instance = BaseContactChildrenSerializer.\
+                    _safe_create_contact(self, facilitator)
+            else:
+                facilitator_instance = facilitator
+            church.facilitator = facilitator_instance
+
+        church.save()
 
         return church
