@@ -100,9 +100,8 @@ class PhoneNumberViewSet(BasePrivateViewSet):
     """Views for the phone number API."""
     queryset = PhoneNumber.objects.all()
     serializer_class = serializers.PhoneNumberSerializer
-    filter_backends = []
-    filterset_fields = []
-    search_fields = []
+    filterset_fields = ['contact__id', 'contact__name']
+    search_fields = ['contact__name', 'contact__lastname']
     ordering_fields = []
 
 

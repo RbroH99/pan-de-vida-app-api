@@ -56,6 +56,7 @@ class ChurchViewSet(BasePrivateViewSet):
         'denomination__name',
         'municipality__name',
         'municipality__province']
+    ordering_fields = ['name', 'denomination__name']
 
     def get_serializer_class(self):
         """Return the serializer class for request."""
