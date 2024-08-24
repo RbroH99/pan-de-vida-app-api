@@ -122,13 +122,12 @@ class ChurchSerializer(BaseNameOnlyModelSerializer):
                     detail='New municipalities must contain at least a name.'
                 )
             elif not isinstance(name, str):
+                detail = (
+                    f'Municipality names must be of type str.Type:{type(name)}'
+                )
                 raise serializers.ValidationError(
                     code=400,
-                    detail=(
-                        f'Municipality names must be of type string.Type:{
-                            type(name)
-                        }'
-                    )
+                    detail=detail
                 )
             elif name and not province:
                 names = Municipality.objects.all().values_list(
