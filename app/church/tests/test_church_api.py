@@ -204,6 +204,111 @@ class PrivateChurchAPITest(TestCase):
                          payload['facilitator']['name']
                          )
 
+    def test_facilitator_update(self):
+        """Test updating the church facilitator."""
+        church = create_church()
+        payload = {
+            "facilitator": {
+                "name": "Facilitator"
+            }
+        }
+        url = detail_url(church.id)
+
+        res = self.client.patch(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        church.refresh_from_db()
+        self.assertEqual(
+            church.facilitator.name,
+            payload['facilitator']["name"]
+        )
+
+        payload = {"facilitator": {"name": "New name"}}
+        res = self.client.patch(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        church.refresh_from_db()
+        self.assertEqual(
+            church.facilitator.name,
+            payload['facilitator']["name"]
+        )
+
+    def test_priest_update(self):
+        """Test updating the church priest."""
+        church = create_church()
+        payload = {
+            "priest": {
+                "name": "Priest"
+            }
+        }
+        url = detail_url(church.id)
+        res = self.client.patch(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        church.refresh_from_db()
+        self.assertEqual(
+            church.priest.name,
+            payload['priest']["name"]
+        )
+        payload = {"priest": {"name": "New name"}}
+        res = self.client.patch(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        church.refresh_from_db()
+        self.assertEqual(
+            church.priest.name,
+            payload['priest']["name"]
+        )
+
+    def test_municipality_created_with_church(self):
+        """Test new municipality creation on church create."""
+        res = self.client.post(CHURCH_URL, self.church_data, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(res.data['municipality'])
+        self.assertEqual(
+            res.data["municipality"]['name'],
+            self.church_data['municipality']['name']
+        )
+
+    def test_update_municipality_if_province_unknown(self):
+        """
+        Test municipality instnces's province can be updated only when unknown.
+        """
+        church = create_church()
+        payload = {
+            "municipality": {
+                "name": 'Other Name'
+            }
+        }
+
+        url = detail_url(church.id)
+        res = self.client.patch(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            res.data['municipality']["name"],
+            payload['municipality']['name']
+        )
+
+        payload.update({"municipality": {"name": "Other Name"}})
+        url = detail_url(church.id)
+        res = self.client.patch(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload.update(
+            {"municipality": {"name": "Other Name", 'province': "ART"}}
+        )
+        church.refresh_from_db()
+        municipality_id = church.municipality.id
+        url = detail_url(church.id)
+        res = self.client.patch(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            res.data['municipality']["name"],
+            payload['municipality']['name']
+        )
+        self.assertEqual(
+            res.data['municipality']["province"],
+            "Artemisa"
+        )
+        self.assertEqual(res.data['municipality']['id'], municipality_id)
+
 
 class PrivateFilteringAPITests(TestCase):
     """Test cases for the filtering and ordering in API responses."""
