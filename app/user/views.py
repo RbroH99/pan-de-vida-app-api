@@ -109,7 +109,7 @@ class PasswordResetView(APIView):
                 status=404
                 )
 
-    def generate_password_reset_token(user):
+    def generate_password_reset_token(self, user):
         expires_in = timedelta(hours=1)
         payload = {
             'user_id': user.id,
