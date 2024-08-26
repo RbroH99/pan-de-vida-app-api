@@ -93,8 +93,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'app.wsgi.application'
 
-DEFAULT_FROM_EMAIL = 'pandevida19@gmail.com'
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 if DEBUG:
@@ -145,6 +143,20 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+
+# SMTP configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'pandevida19@gmail.com'
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+if os.environ.get('GMAIL_APP_PASSWORD', None):
+    EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_APP_PASSWORD')
+else:
+    EMAIL_HOST_PASSWORD = ''
 
 
 # Static files (CSS, JavaScript, Images)
