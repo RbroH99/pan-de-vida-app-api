@@ -95,7 +95,7 @@ class PasswordResetView(APIView):
             send_mail(
                 subject="Restablecer contraseña",
                 message=html_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
+                from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[email],
                 html_message=html_message,
                 fail_silently=False

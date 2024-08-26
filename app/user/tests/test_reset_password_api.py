@@ -11,6 +11,8 @@ from rest_framework.test import APIClient
 
 from user import views
 
+from app.settings import EMAIL_HOST_USER
+
 UserModel = get_user_model()
 
 
@@ -82,3 +84,20 @@ class TestResetPasswordView(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_smtp_connection(self):
+        subject = 'Prueba de envío SMTP'
+        message = 'Este es un mensaje de prueba.'
+        email_from = EMAIL_HOST_USER,
+        recipient_list = ['rbroh99@gmail.com']
+
+        sent = mail.send_mail(
+            subject,
+            message,
+            email_from,
+            recipient_list,
+            fail_silently=False
+        )
+        print(sent)
+
+        assert isinstance(sent, int) and sent > 0, "No se pudo enviar el email"
