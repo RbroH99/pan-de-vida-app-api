@@ -104,7 +104,10 @@ class PasswordResetView(APIView):
                 {"message": "Email enviado con instrucciones de recuperación"}
                 )
         except UserModel.DoesNotExist:
-            return JsonResponse({"error": "Usuario no encontrado"}, status=404)
+            return JsonResponse(
+                {"error": f"Usuario {email} no encontrado"},
+                status=404
+                )
 
     def generate_password_reset_token(user):
         expires_in = timedelta(hours=1)
