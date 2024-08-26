@@ -19,14 +19,13 @@ from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
+from django.conf import settings
 
 from user.serializers import UserSerializer
 
 from core.permissions import IsAdminRole
 
 import jwt
-
-from ..app import settings
 
 from datetime import datetime, timedelta
 
