@@ -168,6 +168,7 @@ AUTH_USER_MODEL = 'core.User'
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     'https://rbravoh99.pythonanywhere.com',
+    'http://192.168.9.175:3000',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
