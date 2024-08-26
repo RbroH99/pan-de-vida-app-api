@@ -222,7 +222,19 @@ class ChurchDetailSerializer(ChurchSerializer):
 
         if priest:
             if "id" in priest:
-                BaseContactChildrenSerializer.update(instance.priest, priest)
+                try:
+                    priest_contact = Contact.objects.get(id=priest["id"])
+                    BaseContactChildrenSerializer.update(
+                        self,
+                        priest_contact,
+                        priest
+                    )
+                    priest_contact.save()
+                except Contact.DoesNotExist:
+                    raise serializers.ValidationError(
+                        code=404,
+                        detail="Priest contact whit given id does not exist!."
+                    )
             else:
                 contact = BaseContactChildrenSerializer._safe_create_contact(
                     self,
@@ -233,6 +245,7 @@ class ChurchDetailSerializer(ChurchSerializer):
         if facilitator:
             if 'id' in facilitator:
                 BaseContactChildrenSerializer.update(
+                    self,
                     instance.facilitator,
                     facilitator
                 )

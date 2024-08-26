@@ -123,9 +123,14 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
         note = contact_info.get("note", None)
         request = self.context["request"]
 
-        if "id" in contact_info:
+        request_data = self.context['request'].data
+
+        priest_id = request_data.get('priest', {}).get('id', None)
+
+        if priest_id:
             try:
-                get_object_or_404(Contact, id=contact_info['id'])
+                get_object_or_404(Contact, id=priest_id)
+                contact_info["id"] = priest_id
             except Contact.DoesNotExist:
                 raise serializers.ValidationError(_("Contact do not exists."))
         elif request.method == 'POST':

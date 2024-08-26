@@ -247,7 +247,9 @@ class PrivateChurchAPITest(TestCase):
             church.priest.name,
             payload['priest']["name"]
         )
-        payload = {"priest": {"name": "New name"}}
+        payload = {"priest": {
+            "id": church.priest.id, "name": "Updated Priest"}
+        }
         res = self.client.patch(url, payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         church.refresh_from_db()
@@ -255,6 +257,7 @@ class PrivateChurchAPITest(TestCase):
             church.priest.name,
             payload['priest']["name"]
         )
+        self.assertEqual(church.priest.id, payload['priest']["id"])
 
     def test_municipality_created_with_church(self):
         """Test new municipality creation on church create."""
