@@ -152,11 +152,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'rbravoh99@gmail.com'
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-
-if os.environ.get('GMAIL_APP_PASSWORD', None):
-    EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_APP_PASSWORD')
-else:
-    EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_PASSWORD = 'yozk izwo btmw imih'
 
 
 # Static files (CSS, JavaScript, Images)
