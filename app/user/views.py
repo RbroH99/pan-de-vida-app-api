@@ -89,7 +89,7 @@ class PasswordResetView(APIView):
 
             html_message = render_to_string(
                 'password_reset_email.html',
-                {'user': user, 'reset_url': reset_url}
+                {'user': user, 'reset_url': reset_url, 'email': email}
             )
 
             send_mail(

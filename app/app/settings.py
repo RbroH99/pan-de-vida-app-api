@@ -151,7 +151,13 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER= 'rbravoh99@gmail.com'
-EMAIL_HOST_PASSWORD = 'yozk izwo btmw imih'
+
+app_password = os.environ.get('GMAIL_APP_PASSWORD', None)
+if app_password:
+    EMAIL_HOST_PASSWORD = app_password
+else:
+    EMAIL_HOST_USER = "user@example.com"
+    EMAIL_HOST_PASSWORD =""
 
 
 # Static files (CSS, JavaScript, Images)
