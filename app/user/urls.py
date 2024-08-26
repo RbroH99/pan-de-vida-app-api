@@ -17,4 +17,14 @@ urlpatterns = [
     path('create/', views.CreateUserView.as_view(), name='create'),
     path('me/', views.ManageUserView.as_view(), name='me'),
     path('', include(router.urls)),
+    path(
+        'reset-password/',
+        views.PasswordResetView.as_view(),
+        name='password_reset'
+        ),
+    path(
+        'reset-password/<str:token>/',
+        views.ResetPasswordView.as_view(),
+        name='reset_password'
+        ),
 ]
