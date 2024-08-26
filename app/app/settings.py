@@ -106,10 +106,10 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'Rbravoh99$pandevida',
-            'USER': 'Rbravoh99',
-            'PASSWORD': 'pandevidaMySQL',
-            'HOST': 'Rbravoh99.mysql.pythonanywhere-services.com',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASS'),
+            'HOST': os.environ.get('DB_HOST'),
         }
     }
 
