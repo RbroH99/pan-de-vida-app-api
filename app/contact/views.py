@@ -25,8 +25,8 @@ from core.models import (
     Donor,
     Donee
 )
-
 from core.utils import gender_choices
+from core.filters import ContactFilterset
 
 
 class BasePrivateViewSet(viewsets.ModelViewSet):
@@ -75,10 +75,10 @@ class ContactViewSet(BasePrivateViewSet):
     """Viewset for the Contact endpoints."""
     queryset = Contact.objects.all()
     serializer_class = serializers.ContactSerializer
-    filterset_fields = ['gender']
+    filterset_class = ContactFilterset
     search_fields = ['name', 'lastname']
     ordering_fields = ['name', 'lastname']
-    ordering = ['name']
+    ordering = ['name', 'lastname']
 
 
 class GenderOptionsView(APIView):

@@ -3,7 +3,8 @@ from django_filters import (
     CharFilter,
     NumberFilter,
 )
-from .models import Treatment, Medicine
+from .models import Treatment, Medicine, Contact
+
 from medicine.serializers import TreatmentSerializer
 
 
@@ -37,3 +38,36 @@ class TreatmentFilter(filters.FilterSet):
 
     def filter_by_donee(self, queryset, name, value):
         return queryset.filter(donee__id=value)
+
+
+class ChurchContactTypeFilter(filters.Filter):
+    def filter(self, qs, value):
+        if value == "priest":
+            priest_ids = list(
+                Contact.objects.filter(
+                    church_priest__isnull=False
+                ).values_list('id', flat=True).distinct()
+            )
+            return qs.filter(id__in=priest_ids)
+
+        elif value == "facilitator":
+            facilitator_ids = list(
+                Contact.objects.filter(
+                    church_facilitator__isnull=False
+                ).values_list('id', flat=True).distinct()
+            )
+            return qs.filter(id__in=facilitator_ids)
+
+        return qs
+
+
+class ContactFilterset(filters.FilterSet):
+    type = ChurchContactTypeFilter()
+    gender = CharFilter(method='filter_by_gender')
+
+    class Meta:
+        model = Contact
+        fields = ['gender', 'type']
+
+    def filter_by_gender(self, queryset, name, value):
+        return queryset.filter(gender=value)

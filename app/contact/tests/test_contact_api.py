@@ -8,7 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Contact
+from core.models import Contact, Church, Denomination
 from core.utils import gender_choices
 
 
@@ -157,6 +157,15 @@ class PrivateContactAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
+
+class PrivateContactAPIFilteringTests(TestCase):
+    """Tests for the authenticated requests to contact API."""
+
+    def setUp(self):
+        self.user = create_user(11111, 'user1@example.com')
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
     def test_ordering_filter(self):
         """Test ordering filter works correctly."""
         Contact.objects.create(name="Albert", lastname='Abbot')
@@ -205,11 +214,38 @@ class PrivateContactAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
 
-    def test_fields_filter(self):
-        """Test filter by fields works as expected."""
+    def test_fields_filter_gender(self):
+        """Test filter by fields works as expected for genders."""
         Contact.objects.create(name="Albert", lastname='Abbot', gender='M')
         Contact.objects.create(name="Zane", lastname='Zora', gender='F')
 
         res = self.client.get(f"{CONTACTS_URL}?gender=M")
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
+
+    def test_fields_filter_type(self):
+        """Test filter by fields works as expected for genders."""
+        contact1 = Contact.objects.create(
+            name="Albert", lastname='Abbot', gender='M'
+        )
+        contact2 = Contact.objects.create(
+            name="Zane", lastname='Zora', gender='F'
+        )
+
+        denomination = Denomination.objects.create(name="Test Denomination")
+        Church.objects.create(
+            name="Test Church",
+            denomination=denomination,
+            priest=contact1,
+            facilitator=contact2,
+        )
+
+        res = self.client.get(f"{CONTACTS_URL}?type=priest")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['id'], contact1.id)
+
+        res = self.client.get(f"{CONTACTS_URL}?type=facilitator")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['id'], contact2.id)
