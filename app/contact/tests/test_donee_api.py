@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from django_countries import countries
+
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -20,6 +22,7 @@ from core.models import (
 
 
 DONEE_URL = reverse('contact:donee-list')
+COUNTRY_CHOICES_URL = reverse('contact:country-choices')
 
 
 def detail_url(donee_id):
@@ -362,6 +365,18 @@ class PrivateDoneeAPITest(TestCase):
         )
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data[0]['id'], donee2.id)
+
+    def test_country_choices_api_view(self):
+        """Test donee country choices retrieve endpoint."""
+
+        res = self.client.get(COUNTRY_CHOICES_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        expected_data = [
+            {'code': code, 'name': name}
+            for code, name in list(countries)
+        ]
+        self.assertListEqual(res.data, expected_data)
 
 
 class DoneeModelTest(TestCase):

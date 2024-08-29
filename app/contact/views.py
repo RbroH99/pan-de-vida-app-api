@@ -14,6 +14,8 @@ from rest_framework import (
     status,
 )
 
+from django_countries import countries
+
 from contact import serializers
 
 from core.models import (
@@ -92,6 +94,19 @@ class GenderOptionsView(APIView):
         gender_options = [
             {'label': choice[1], 'value': choice[0]}
             for choice in gender_choices
+        ]
+        return Response(gender_options, status=status.HTTP_200_OK)
+
+
+class CountriesChoicesView(APIView):
+    """View to get the countries. """
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, format=None):
+        gender_options = [
+            {'code': code, 'name': name}
+            for code, name in list(countries)
         ]
         return Response(gender_options, status=status.HTTP_200_OK)
 

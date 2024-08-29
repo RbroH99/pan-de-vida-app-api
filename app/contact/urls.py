@@ -26,4 +26,8 @@ urlpatterns = [
         'gender-choices/', views.GenderOptionsView.as_view(),
         name='gender-choices'
     ),
+    path(
+        'country-choices/', views.CountriesChoicesView.as_view(),
+        name='country-choices'
+    ),
 ]
