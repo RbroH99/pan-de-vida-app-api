@@ -140,6 +140,18 @@ class MedicViewSet(BasePrivateViewSet):
         return self._contact_children_destroy(request, *args, **kwargs)
 
 
+class MedicSpecialties(APIView):
+    """View to get the medics specialties in the system. """
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, format=None):
+        specialties = Medic.objects.filter(
+                    specialty__isnull=False
+                ).values_list('specialty', flat=True).distinct()
+        return Response(specialties, status=status.HTTP_200_OK)
+
+
 class DonorViewSet(BasePrivateViewSet):
     """Views for the donor api."""
     queryset = Donor.objects.all()

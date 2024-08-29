@@ -16,6 +16,7 @@ from core.models import (
 
 
 MEDIC_URL = reverse('contact:medic-list')
+MEDIC_SPECIALTIES_URL = reverse('contact:medic-specialties')
 
 
 def detail_url(medic_id):
@@ -183,6 +184,16 @@ class PrivateMedicAPITest(TestCase):
         res = self.client.delete(url)
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_retrieve_medic_specialties(self):
+        """Tests retrieving medic specialties in the system."""
+        create_medic()
+        create_medic(spec="Generalist")
+
+        res = self.client.get(MEDIC_SPECIALTIES_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 3)
 
     def test_ordering_filter(self):
         """Test ordering filter works correctly."""

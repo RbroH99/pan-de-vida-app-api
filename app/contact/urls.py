@@ -30,4 +30,8 @@ urlpatterns = [
         'country-choices/', views.CountriesChoicesView.as_view(),
         name='country-choices'
     ),
+    path(
+        'medic-specialties/', views.MedicSpecialties.as_view(),
+        name='medic-specialties'
+    ),
 ]
