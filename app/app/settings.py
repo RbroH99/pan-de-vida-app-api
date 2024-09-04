@@ -32,7 +32,7 @@ DEBUG = False
 if DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
-    ALLOWED_HOSTS = ['rbravoh99.pythonanywhere.com', 'breadoflife.pythonanywhere.com']
+    ALLOWED_HOSTS = ['rbravoh99.pythonanywhere.com', 'breadoflife.pythonanywhere.com', 'breadoflife.onrender.com']
     ALLOWED_HOSTS.extend(
         filter(
             None,
@@ -183,6 +183,7 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     'https://rbravoh99.pythonanywhere.com',
     'http://192.168.9.175:3000',
+    'breadoflife.onrender.com',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
