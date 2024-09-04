@@ -183,7 +183,7 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     'https://rbravoh99.pythonanywhere.com',
     'http://192.168.9.175:3000',
-    'breadoflife.onrender.com',
+    "https://breadoflife.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
