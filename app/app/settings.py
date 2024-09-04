@@ -32,7 +32,7 @@ DEBUG = False
 if DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
-    ALLOWED_HOSTS = ['rbravoh99.pythonanywhere.com']
+    ALLOWED_HOSTS = ['rbravoh99.pythonanywhere.com', 'breadoflife.pythonanywhere.com']
     ALLOWED_HOSTS.extend(
         filter(
             None,
