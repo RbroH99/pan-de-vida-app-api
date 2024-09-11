@@ -205,8 +205,8 @@ class PhoneNumber(models.Model):
                              null=False,
                              default="Sin Etiqueta")
     description = models.CharField(max_length=120,
-                                   blank=False,
-                                   null=False)
+                                   blank=True,
+                                   null=True)
 
 
 class WorkingSite(models.Model):
