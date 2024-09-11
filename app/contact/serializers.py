@@ -83,7 +83,7 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PhoneNumber
-        fields = ['id', 'contact', 'number']
+        fields = ['id', 'contact', 'number', 'label', 'description']
         read_only_field = ['id']
         extra_kwargs = {'number': {
                             'required': True,
