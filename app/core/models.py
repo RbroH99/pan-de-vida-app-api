@@ -200,6 +200,13 @@ class PhoneNumber(models.Model):
                               unique=True,
                               blank=False,
                               null=False)
+    label = models.CharField(max_length=30,
+                             blank=False,
+                             null=False,
+                             default="Sin Etiqueta")
+    description = models.CharField(max_length=120,
+                                   blank=False,
+                                   null=False)
 
 
 class WorkingSite(models.Model):
