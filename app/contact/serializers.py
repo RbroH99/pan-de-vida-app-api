@@ -94,7 +94,7 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
 
     def validate_number(self, number):
         """Validates the phone number."""
-        pattern = re.compile(r'^\+(?:\d{1,3})?[\s-]?\d{1,14}$')
+        pattern = re.compile(r'^(?:\+)?(?:\d{1,3})?[\s-]?\d{1,14}$')
         if not pattern.match(number):
             msg = _("Invalid phone number.")
             raise serializers.ValidationError(msg)
