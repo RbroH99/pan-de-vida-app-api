@@ -63,6 +63,14 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             raise serializers.ValidationError("Usuario no encontrado.")
         return value
 
+    def generate_password_reset_token(self, user):
+        expires_in = timedelta(hours=1)
+        payload = {
+            'user_id': user.id,
+            'exp': (datetime.now() + expires_in).timestamp()
+        }
+        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
     def send_password_reset_email(self, request):
         token = self.generate_password_reset_token(self.user)
         reset_url = (
@@ -86,14 +94,6 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             html_message=html_message,
             fail_silently=False
         )
-
-    def generate_password_reset_token(self, user):
-        expires_in = timedelta(hours=1)
-        payload = {
-            'user_id': user.id,
-            'exp': (datetime.now() + expires_in).timestamp()
-        }
-        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
 
 class PasswordResetSerializer(serializers.Serializer):
