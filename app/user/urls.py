@@ -18,13 +18,13 @@ urlpatterns = [
     path('me/', views.ManageUserView.as_view(), name='me'),
     path('', include(router.urls)),
     path(
-        'reset-password/',
-        views.PasswordResetView.as_view(),
+        'reset-password-request/',
+        views.PasswordResetRequestView.as_view(),
         name='password_reset'
         ),
     path(
-        'reset-password/<str:token>/',
-        views.ResetPasswordView.as_view(),
+        'reset-password/',
+        views.PasswordResetView.as_view(),
         name='reset_password'
         ),
 ]

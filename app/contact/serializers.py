@@ -73,6 +73,39 @@ class ContactSerializer(serializers.ModelSerializer):
 
         return contact
 
+    def create_church_staff(self, validated_data: dict):
+        """Creates a new priest or facilitator contact instance in db."""
+        user = validated_data.pop('user', None)
+        note = validated_data.pop('note', None)
+        try:
+            contact = Contact.objects.create(**validated_data)
+        except Exception as e:
+            raise serializers.ErrorDetail(str(e), code=500)
+
+        try:
+            if user:
+                password = user.pop('password', None)
+                if not password:
+                    raise serializers.ValidationError("Password is required")
+                name = user.pop('name', None)
+                user = get_user_model().objects.create_church_staffuser(
+                    role=user.role,
+                    password=user.password,
+                    name=name,
+                    email=user.email
+                )
+                contact.user = user
+
+            if note:
+                note = Note.objects.create(**note)
+                contact.note = note
+        except Exception as e:
+            raise serializers.ErrorDetail(str(e), code=500)
+
+        contact.save()
+
+        return contact
+
 
 class PhoneNumberSerializer(serializers.ModelSerializer):
     """Serializer for the PhoneNumber model."""

@@ -22,9 +22,14 @@ def detail_url(phone_number_id):
     return reverse('contact:phonenumber-detail', args=[phone_number_id])
 
 
-def create_user(id=99999, email="user@example.com"):
+def create_user(id=99999, email="user@example.com", role=5):
     """Creates and return a new user."""
-    user = get_user_model().objects.create_user(id=id, email=email)
+    user = get_user_model().objects.create_user(
+        id=id,
+        email=email,
+        password="testpass123",
+        role=role
+    )
 
     return user
 
@@ -96,7 +101,7 @@ class PrivatePhoneNumberAPITests(TestCase):
     """Test private request to the phone number API."""
 
     def setUp(self):
-        self.user = create_user()
+        self.user = create_user(role=1)
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
@@ -131,7 +136,7 @@ class PrivatePhoneNumberAPITests(TestCase):
         contact = create_contact()
         payload = {
             "contact": contact.id,
-            "number": "1234567890"
+            "number": "+123 456 789 1011 12"
         }
         res = self.client.post(PHONE_NUMBER_URL, payload, format='json')
 

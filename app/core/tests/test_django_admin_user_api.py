@@ -4,6 +4,9 @@ from django.contrib import admin
 from django.http import HttpRequest
 
 from core.admin import UserAdmin
+from django.contrib.auth.forms import (
+    UserCreationForm,
+)
 
 
 User = get_user_model()
@@ -27,15 +30,23 @@ class TestUserAdminSaveForm(TestCase):
         }
 
     def test_create_regular_user(self):
-        response = self.user_admin.save_model(self.request, None, None, False)
-        self.assertTrue(isinstance(response, User))
-        self.assertEqual(response.email, 'test@example.com')
+        form = UserCreationForm()
+        user = User()
+        self.user_admin.save_model(self.request, user, form, False)
+        saved_user = User.objects.get(email='test@example.com')
+        self.assertTrue(isinstance(saved_user, User))
+        self.assertEqual(saved_user.email, 'test@example.com')
 
     def test_create_superuser(self):
         self.request.POST['is_superuser'] = True
-        response = self.user_admin.save_model(self.request, None, None, False)
-        self.assertTrue(isinstance(response, User))
-        self.assertTrue(response.is_superuser)
+
+        user = User()
+
+        self.user_admin.save_model(self.request, user, None, False)
+
+        saved_user = User.objects.get(email='test@example.com')
+        self.assertTrue(isinstance(saved_user, User))
+        self.assertTrue(saved_user.is_superuser)
 
     def test_update_user_role(self):
         user = User.objects.create_user(
@@ -47,7 +58,10 @@ class TestUserAdminSaveForm(TestCase):
         self.request.POST['email'] = 'updated@example.com'
         self.request.POST['name'] = 'Updated User'
         self.request.POST['role'] = 2
+
         self.user_admin.save_model(self.request, user, None, True)
+
         updated_user = User.objects.get(id=user.id)
+        self.assertEqual(updated_user.email, 'updated@example.com')
         self.assertEqual(updated_user.name, 'Updated User')
         self.assertEqual(updated_user.role, 2)

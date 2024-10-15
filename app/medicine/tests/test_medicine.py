@@ -99,6 +99,8 @@ class PrivateMedicineAPITests(TestCase):
         self.user = get_user_model().objects.create_user(
             id=9998,
             email='user@example.com',
+            password='testpass123',
+            name='Test Name',
             role=1
         )
         self.client = APIClient()
@@ -240,6 +242,8 @@ class PrivateFilteringAPITests(TestCase):
         self.user = get_user_model().objects.create_user(
             id=9997,
             email='user@example.com',
+            password='testpass123',
+            name='Test Name',
             role=1
         )
         self.client = APIClient()
@@ -309,6 +313,8 @@ class RoleBasedAPITests(TestCase):
         self.admin_user = get_user_model().objects.create_user(
             id=9997,
             email='adminuser@example.com',
+            password='testpass123',
+            name='Test Name',
             role=1
         )
         self.admin_client = APIClient()
@@ -317,6 +323,8 @@ class RoleBasedAPITests(TestCase):
         self.agent_user = get_user_model().objects.create_user(
             id=9996,
             email='agentuser@example.com',
+            password='testpass123',
+            name='Test Name',
             role=2
         )
         self.agent_client = APIClient()
@@ -325,6 +333,9 @@ class RoleBasedAPITests(TestCase):
         self.donor_user = get_user_model().objects.create_user(
             id=9995,
             email='donoruser@example.com',
+            password='testpass123',
+            name='Test Name',
+            role=5
         )
         self.donor_client = APIClient()
         self.donor_client.force_authenticate(self.donor_user)

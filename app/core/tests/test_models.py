@@ -16,7 +16,12 @@ class ModelTests(TestCase):
         """Test creating user profile in the API."""
         email = 'userprofile@example.com'
         id = 1
-        user = UserProfile.objects.create_user(id=id, email=email)
+        user = UserProfile.objects.create_user(
+            id=id,
+            email=email,
+            password='testpass123',
+            name='Test Name',
+        )
 
         self.assertEqual(str(user), email)
 
@@ -37,7 +42,8 @@ class ModelTests(TestCase):
         medicine = models.Medicine.objects.create(name="Aspirina")
 
         self.assertEqual(str(medicine),
-                         f'Name: {medicine.name}, Quantity: {medicine.quantity}')
+                         f'Name: {medicine.name}, Quantity: {medicine.quantity}'
+                         )
 
     def test_create_contact(self):
         """Test creating contact object in the DB."""

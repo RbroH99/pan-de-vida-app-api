@@ -4,6 +4,7 @@ Serializers for the Church APP.
 from rest_framework import serializers
 
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 
 from core.utils import PROVINCES_CUBA
 from core.models import (
@@ -11,7 +12,7 @@ from core.models import (
     Denomination,
     Church,
     Note,
-    Contact
+    Contact,
 )
 from contact.serializers import (
     ContactSerializer,
@@ -166,6 +167,28 @@ class ChurchDetailSerializer(ChurchSerializer):
         """Validate facilitator info for the church."""
         return self.contact_validation(facilitator_info)
 
+    def create_staff_contact_user(
+            self,
+            instance,
+            validated_data,
+            ) -> None:
+        """Creates a new user instance for a valid given contact instance."""
+        try:
+            user = instance.user
+            if user:
+                user.role = 3
+                user.save()
+            else:
+                validated_data.pop("gender")
+                user = get_user_model().objects.create_church_staffuser(
+                    self,
+                    **validated_data
+                )
+            instance.user = user
+            instance.save()
+        except Exception as e:
+            raise e
+
     def create(self, validated_data):
         """Create a new church instance."""
         municipality = validated_data.pop('municipality', None)
@@ -191,18 +214,40 @@ class ChurchDetailSerializer(ChurchSerializer):
 
         if priest:
             if priest not in Contact.objects.all():
-                priest_instance = BaseContactChildrenSerializer.\
-                    _safe_create_contact(self, priest)
+                priest_instance = ContactSerializer.create_church_staff(
+                    self,
+                    priest
+                )
+                if priest.get("user", None):
+                    priest_instance = self.create_staff_contact_user(
+                        priest_instance,
+                        priest
+                    )
             else:
-                priest_instance = priest
+                priest_instance = Contact.objects.get(id=priest["id"])
+                priest_instance = self.create_staff_contact_user(
+                    priest_instance,
+                    priest
+                )
             church.priest = priest_instance
 
         if facilitator:
-            if priest not in Contact.objects.all():
-                facilitator_instance = BaseContactChildrenSerializer.\
-                    _safe_create_contact(self, facilitator)
+            if facilitator not in Contact.objects.all():
+                facilitator_instance = ContactSerializer.create_church_staff(
+                    self,
+                    facilitator
+                )
+                if facilitator.get("user", None):
+                    facilitator_instance = self.create_staff_contact_user(
+                        facilitator_instance,
+                        facilitator
+                    )
             else:
-                facilitator_instance = facilitator
+                facilitator_instance = Contact.objects.get(id=facilitator["id"])
+                facilitator_instance = self.create_staff_contact_user(
+                    facilitator_instance,
+                    facilitator
+                )
             church.facilitator = facilitator_instance
 
         church.save()

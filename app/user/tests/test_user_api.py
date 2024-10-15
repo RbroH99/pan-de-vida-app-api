@@ -208,7 +208,7 @@ class RoleBasedTests(TestCase):
         res = self.donor_client.get(ME_URL)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data["role"], 3)
+        self.assertEqual(res.data["role"], 5)
 
     def test_donor_retrieve_user_list(self):
         """Test donor users can't retrieve users in the system."""

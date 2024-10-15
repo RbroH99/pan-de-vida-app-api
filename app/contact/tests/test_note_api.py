@@ -69,6 +69,8 @@ class PrivateNoteAPITests(TestCase):
         self.user = get_user_model().objects.create_user(
             id=9999,
             email="user2@example.com",
+            password="testpass123",
+            name="Test User",
             )
         self.client = APIClient()
         self.client.force_authenticate(self.user)

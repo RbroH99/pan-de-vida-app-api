@@ -19,7 +19,8 @@ from church import serializers
 from core.models import (
     Municipality,
     Denomination,
-    Church
+    Church,
+    Contact
 )
 
 from core.utils import PROVINCES_CUBA
@@ -64,6 +65,15 @@ class ChurchViewSet(BasePrivateViewSet):
             return serializers.ChurchSerializer
 
         return self.serializer_class
+
+    def destroy(self, request, *args, **kwargs):
+        priest = self.get_object().priest
+        facilitator = self.get_object().facilitator
+        if priest:
+            Contact.delete(priest)
+        if facilitator:
+            Contact.delete(facilitator)
+        return super().destroy(request, *args, **kwargs)
 
 
 class ProvincesOptionsView(APIView):

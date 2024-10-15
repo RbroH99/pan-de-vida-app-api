@@ -73,6 +73,8 @@ class PrivateMedicinePresentationAPITests(TestCase):
         self.user = get_user_model().objects.create_user(
             id=9999,
             email="user2@example.com",
+            password="testpass123",
+            name="Test User",
             role=1,
             )
         self.client = APIClient()

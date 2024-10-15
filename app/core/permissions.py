@@ -15,6 +15,6 @@ class IsNotDonor(BasePermission):
 
     def has_permission(self, request, view):
         if hasattr(request.user, 'role'):
-            if request.user.role == 3:
+            if request.user.role == 5:
                 return False
         return True

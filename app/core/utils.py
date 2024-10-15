@@ -39,9 +39,12 @@ class CustomTokenGenerator(RefreshToken):
 
 
 role_choices = (
-    (1, 'admin'),
+    (0, 'admin'),
+    (1, 'colaborator'),
     (2, 'agent'),
-    (3, 'donor'),
+    (3, 'priest'),
+    (4, 'facilitator'),
+    (5, 'donor'),
 )
 
 measurement_choices = (

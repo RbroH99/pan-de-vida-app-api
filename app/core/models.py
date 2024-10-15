@@ -32,21 +32,35 @@ class Note(models.Model):
 class UserManager(BaseUserManager):
     """Manager for the users."""
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_unique_name_from_email(email):
+        """Creates a unique name from email."""
+        base_name = email.split('@')[0]
+        name = base_name
+        i = 1
+        while User.objects.filter(name=name).exists():
+            name = f'{base_name}{i}'
+            i += 1
+        return name
+
+    def create_user(self, email, password=None, **extra_fields) -> 'User':
         """Create, save and return a new user."""
         if not email:
             raise ValueError('User must have an email!.')
         email = self.normalize_email(email)
-        role = extra_fields.pop("role", 3)
+        role = extra_fields.pop("role", 5)
         user = self.model(email=email, role=role, **extra_fields)
 
+        if not password:
+            raise ValueError('Password must be provided!')
         user.set_password(password)
         user.save(using=self._db)
 
         return user
 
-    def create_superuser(self, email, password, name=''):
+    def create_superuser(self, email, password=None, name='') -> 'User':
         """Create superuser with given details."""
+        if email:
+            email = self.normalize_email(email)
         user = self.model(email=email)
 
         if name:
@@ -54,6 +68,33 @@ class UserManager(BaseUserManager):
         user.is_superuser = True
         user.is_staff = True
         user.role = 1
+        if not password:
+            raise ValueError('Password must be provided!')
+        user.set_password(password)
+        user.save(using=self._db)
+
+        return user
+
+    def create_church_staffuser(
+            self, email, password, role=4, name=''
+            ) -> 'User':
+        """Create staffuser of church with given details."""
+        if email:
+            email = self.normalize_email(email)
+            user = self.model(email=email)
+            if not name:
+                name = self.create_unique_name_from_email(email)
+
+        if name:
+            user.name = name
+        user.is_staff = False
+        if role not in [4, 5]:
+            raise ValueError(
+                'Only priest and facilitators can be created with this method!'
+                )
+        user.role = role
+        if not password:
+            raise ValueError('Password must be provided!')
         user.set_password(password)
         user.save(using=self._db)
 
@@ -70,7 +111,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         choices=role_choices,
         blank=True,
         null=True,
-        default=3
+        default=5
     )
 
     objects = UserManager()
@@ -337,16 +378,16 @@ class Church(models.Model):
                                      null=True,
                                      blank=True,
                                      on_delete=models.SET_NULL)
-    priest = models.ForeignKey(Contact,
-                               null=True,
-                               blank=True,
-                               on_delete=models.SET_NULL,
-                               related_name='church_priest')
-    facilitator = models.ForeignKey(Contact,
-                                    null=True,
-                                    blank=True,
-                                    on_delete=models.SET_NULL,
-                                    related_name='church_facilitator')
+    priest = models.OneToOneField(Contact,
+                                  null=True,
+                                  blank=True,
+                                  on_delete=models.SET_NULL,
+                                  related_name='church_priest')
+    facilitator = models.OneToOneField(Contact,
+                                       null=True,
+                                       blank=True,
+                                       on_delete=models.SET_NULL,
+                                       related_name='church_facilitator')
     note = models.ForeignKey(Note,
                              blank=True,
                              null=True,

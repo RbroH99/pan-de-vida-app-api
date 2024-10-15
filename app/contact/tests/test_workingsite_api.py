@@ -21,7 +21,11 @@ def detail_url(working_site_id):
 
 def create_user(id=99999, email="user@example.com"):
     """Creates and return a new user."""
-    user = get_user_model().objects.create_user(id=id, email=email)
+    user = get_user_model().objects.create_user(
+        id=id,
+        email=email,
+        password="testpass123",
+        )
 
     return user
 

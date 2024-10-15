@@ -13,7 +13,8 @@ from church import serializers
 from core.models import (
     Denomination,
     Municipality,
-    Church
+    Church,
+    Contact
 )
 
 
@@ -158,6 +159,19 @@ class PrivateChurchAPITest(TestCase):
         url = detail_url(church.id)
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_associated_priest_deletion_on_church_destroy(self):
+        """Test priest associated to a church is deleted on church deletion."""
+        church = create_church(name="Test Church")
+        priest = Contact.objects.create(name="Test Priest")
+        church.priest = priest
+        church.save()
+
+        url = detail_url(church.id)
+        res = self.client.delete(url)
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        with self.assertRaises(Contact.DoesNotExist):
+            Contact.objects.get(id=priest.id)
 
     def test_denomination_returned_as_object(self):
         """Test denomination of church returned as dict."""
@@ -320,6 +334,7 @@ class PrivateFilteringAPITests(TestCase):
         self.user = get_user_model().objects.create_user(
             id=9997,
             email='user@example.com',
+            password="testpass123",
             role=1
         )
         self.client = APIClient()

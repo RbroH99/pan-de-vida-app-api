@@ -98,6 +98,5 @@ class TestResetPasswordView(APITestCase):
             recipient_list,
             fail_silently=False
         )
-        print(sent)
 
         assert isinstance(sent, int) and sent > 0, "No se pudo enviar el email"

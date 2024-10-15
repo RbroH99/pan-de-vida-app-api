@@ -25,7 +25,12 @@ def detail_url(contact_id):
 
 def create_user(id=99999, email="user@example.com"):
     """Creates and return a new user."""
-    user = get_user_model().objects.create_user(id=id, email=email, role=1)
+    user = get_user_model().objects.create_user(
+        id=id,
+        email=email,
+        role=1,
+        password='testpass123'
+    )
 
     return user
 
