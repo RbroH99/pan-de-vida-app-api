@@ -23,7 +23,7 @@ urlpatterns = [
         name='password_reset'
         ),
     path(
-        'reset-password/<str:token>/',
+        'reset-password/',
         views.PasswordResetView.as_view(),
         name='reset_password'
         ),

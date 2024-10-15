@@ -74,7 +74,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     def send_password_reset_email(self, request):
         token = self.generate_password_reset_token(self.user)
         reset_url = (
-            f"http://localhost:3000/reset-password/?token={token}"
+            f"http://localhost:3000/reset-password/{token}"
         )
 
         html_message = render_to_string(
