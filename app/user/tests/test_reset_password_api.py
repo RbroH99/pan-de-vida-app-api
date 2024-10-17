@@ -9,7 +9,7 @@ from django.core import mail
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from user import views
+from user import views, serializers
 
 from app.settings import EMAIL_HOST_USER
 
@@ -54,18 +54,35 @@ class TestResetPasswordView(APITestCase):
         self.user = UserModel.objects.create_user(
             name='testuser', email='test@example.com',
             password='password123')
-        self.token = views.PasswordResetView.generate_password_reset_token(
-            self,
-            self.user
-        )
-        self.url = reverse('user:reset_password', args=[self.token])
+        self.token = views.PasswordResetRequestSerializer\
+            .generate_password_reset_token(
+                self,
+                self.user
+            )
+        self.url = reverse('user:reset_password')
 
-    def test_reset_password_get_request_valid_token(self):
-        """SImulate get request with valid token."""
-        response = self.client.get(
-            self.url,
+    def test_reset_password_request_valid(self):
+        """Simulate reset request for valid email"""
+        response = self.client.post(
+            reverse("user:password_reset"),
             format='json',
-            data={'password': 'newpassword123'})
+            data={'email': 'test@example.com'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        token = serializers.PasswordResetRequestSerializer\
+            .generate_password_reset_token(
+                self,
+                self.user
+            )
+        url = reverse('user:reset_password')
+        response = self.client.post(
+            f'{url}',
+            format='json',
+            data={
+                'password': 'newpassword123', "token": token
+            }
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -73,14 +90,19 @@ class TestResetPasswordView(APITestCase):
         user = UserModel.objects.create(
             email="user2@example.com",
             password="password123")
-        token = views.PasswordResetView.generate_password_reset_token(
-            self,
-            user
-        )
-        url = reverse('user:reset_password', args=[token])
+        token = serializers.PasswordResetRequestSerializer\
+            .generate_password_reset_token(
+                self,
+                user
+            )
+        url = reverse('user:reset_password')
         UserModel.delete(user)
-        response = self.client.get(
-            f'{url}', format='json', data={'password': 'newpassword123'}
+        response = self.client.post(
+            f'{url}',
+            format='json',
+            data={
+                'password': 'newpassword123', "token": token
+            }
         )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

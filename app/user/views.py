@@ -73,7 +73,7 @@ class PasswordResetRequestView(APIView):
         if serializer.is_valid():
             serializer.send_password_reset_email(request)
             return Response(
-                {"message": "Email with recuperation instructions sended."}
+                {"message": "Email with recuperation instructions sent."}
             )
         return Response(serializer.errors, status=400)
 

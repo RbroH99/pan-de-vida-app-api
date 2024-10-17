@@ -6,7 +6,6 @@ from rest_framework import serializers
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 
 from django_countries.serializers import CountryFieldMixin
 
@@ -24,6 +23,8 @@ from core.utils import (
     gender_choices
 )
 
+from user.serializers import UserSerializer
+
 import re
 
 
@@ -38,11 +39,7 @@ class NoteSerializer(serializers.ModelSerializer):
 
 class ContactSerializer(serializers.ModelSerializer):
     """Serializer for the contact model."""
-    user = serializers.PrimaryKeyRelatedField(
-        queryset=get_user_model().objects.all(),
-        many=False,
-        required=False
-        )
+    user = UserSerializer(many=False, required=False)
     note = NoteSerializer(many=False, required=False)
     gender = serializers.ChoiceField(choices=gender_choices,
                                      default='-')
@@ -63,15 +60,60 @@ class ContactSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Creates a new contact instance in db."""
         note = validated_data.pop('note', None)
+        user = validated_data.pop('user', None)
+
         contact = Contact.objects.create(**validated_data)
 
         if note:
             note = Note.objects.create(**note)
             contact.note = note
 
+        if user:
+            user_instance = get_user_model()\
+                        .objects.create(
+                            **user
+                    )
+            contact.user = user_instance
+
         contact.save()
 
         return contact
+
+    def update(self, instance, validated_data):
+        """Update and return an existing contact."""
+        note = validated_data.pop("note", None)
+        user = validated_data.pop("user", None)
+
+        if note:
+            note_instance = instance.note
+            if note_instance:
+                note_instance.note = note["note"]
+                note_instance.save()
+            else:
+                note_instance = Note.objects.create(note=note["note"])
+                instance.note = note_instance
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if user:
+            user_instance = instance.user
+            if user_instance:
+                for attr, value in user.items():
+                    setattr(user_instance, attr, value)
+                user_instance.save()
+            else:
+                user_instance = get_user_model()\
+                    .objects.create_church_staffuser(
+                    role=user["role"],
+                    name=user["name"],
+                    email=user["email"],
+                    password=user["password"]
+                )
+                instance.user = user_instance
+        instance.save()
+
+        return instance
 
     def create_church_staff(self, validated_data: dict):
         """Creates a new priest or facilitator contact instance in db."""
@@ -152,21 +194,23 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
         fields = ['id', 'contact']
         read_only_fields = ['id']
 
+    def user_validation(self, user_info):
+        """Validates user info for user model."""
+        user_serializer = UserSerializer(user_info)
+        if not user_serializer.is_valid():
+            raise serializers.ValidationError(
+                _("Provided user not valid.")
+            )
+
     def validate_contact(self, contact_info):
         note = contact_info.get("note", None)
+        user = contact_info.get("user", None)
         request = self.context["request"]
 
-        request_data = self.context['request'].data
+        if user:
+            self.user_validation(user)
 
-        priest_id = request_data.get('priest', {}).get('id', None)
-
-        if priest_id:
-            try:
-                get_object_or_404(Contact, id=priest_id)
-                contact_info["id"] = priest_id
-            except Contact.DoesNotExist:
-                raise serializers.ValidationError(_("Contact do not exists."))
-        elif request.method == 'POST':
+        if request.method == 'POST':
             if "name" not in contact_info:
                 raise serializers.ValidationError(_("Contact needs a name."))
 
@@ -188,24 +232,12 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         contact_data = validated_data.pop('contact', None)
+
         if contact_data:
             contact = instance.contact
-            note = contact_data.pop("note", None)
-            if note:
-                note_instance = contact.note
-                if note_instance:
-                    note_instance.note = note["note"]
-                    note_instance.save()
-                else:
-                    note_instance = Note.objects.create(note=note["note"])
-                    contact.note = note_instance
-                    contact.save()
-            # Actualizar los atributos del contacto
-            for attr, value in contact_data.items():
-                setattr(contact, attr, value)
-            contact.save()
+            ContactSerializer.update(self, contact, contact_data)
 
-        # Actualizar los atributos de la instancia
+        # Update instance attrs
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -215,6 +247,8 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
     def _safe_create_contact(self, contact):
         """Safely creates a contact instance from valid given dict."""
         note = contact.pop("note", None)
+        user = contact.pop("user", None)
+
         if "id" in contact:
             contact_instance = Contact.objects.get(id=contact[id])
             if note:
@@ -246,6 +280,15 @@ class BaseContactChildrenSerializer(serializers.ModelSerializer):
                 note_instance = Note.objects.create(note=note["note"])
                 contact_instance.note = note_instance
                 contact_instance.save()
+        if user:
+            if contact_instance.user:
+                contact_instance.user.delete()
+            self.user_validation(user)
+            user_instance = get_user_model().objects.create_user(**user)
+            contact_instance.user = user_instance
+
+        contact_instance.save()
+
         return contact_instance
 
 

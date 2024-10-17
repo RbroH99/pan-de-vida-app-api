@@ -4,6 +4,7 @@ Serializers for the user API.
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -60,7 +61,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         try:
             self.user = User.objects.get(email=value)
         except User.DoesNotExist:
-            raise serializers.ValidationError("Usuario no encontrado.")
+            raise NotFound(detail="User not found.")
         return value
 
     def generate_password_reset_token(self, user):
@@ -112,7 +113,7 @@ class PasswordResetSerializer(serializers.Serializer):
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
             raise serializers.ValidationError("Invalid or expired token")
         except User.DoesNotExist:
-            raise serializers.ValidationError("User not found.")
+            raise NotFound(detail="User not found.")
 
         return data
 

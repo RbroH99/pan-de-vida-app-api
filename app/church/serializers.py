@@ -5,6 +5,8 @@ from rest_framework import serializers
 
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext as _
 
 from core.utils import PROVINCES_CUBA
 from core.models import (
@@ -83,14 +85,27 @@ class ChurchSerializer(BaseNameOnlyModelSerializer):
 
     def contact_validation(self, contact_info):
         """
-        This method uses the contact validation of the DonorSerializer for
-        the Donor model, from contact.serializers and validates contact.
+        This method validates the contact info recieved in the
+        request, uses validate_contact from DonorSerializer.
         """
-        return DonorSerializer.validate_contact(self, contact_info)
+        contact_id = contact_info.get('id', None)
+
+        if contact_id:
+            try:
+                get_object_or_404(Contact, id=contact_id)
+                contact_info["id"] = contact_id
+            except Contact.DoesNotExist:
+                raise serializers.ValidationError(_("Contact do not exists."))
+
+        contact_info = DonorSerializer.validate_contact(self, contact_info)
+
+        return contact_info
 
     def validate_priest(self, priest_info):
         """Validate priest info for the church."""
-        return self.contact_validation(priest_info)
+        request_data = self.context["request"].data
+        request_priest_info = request_data.get("priest", {})
+        return self.contact_validation(request_priest_info)
 
     def validate_municipality(self, municipality_info):
         """
@@ -165,7 +180,9 @@ class ChurchDetailSerializer(ChurchSerializer):
 
     def validate_facilitator(self, facilitator_info):
         """Validate facilitator info for the church."""
-        return self.contact_validation(facilitator_info)
+        request_data = self.context["request"].data
+        request_facilitator_info = request_data.get("facilitator", {})
+        return self.contact_validation(request_facilitator_info)
 
     def create_staff_contact_user(
             self,
@@ -269,7 +286,7 @@ class ChurchDetailSerializer(ChurchSerializer):
             if "id" in priest:
                 try:
                     priest_contact = Contact.objects.get(id=priest["id"])
-                    BaseContactChildrenSerializer.update(
+                    ContactSerializer.update(
                         self,
                         priest_contact,
                         priest
@@ -289,7 +306,7 @@ class ChurchDetailSerializer(ChurchSerializer):
 
         if facilitator:
             if 'id' in facilitator:
-                BaseContactChildrenSerializer.update(
+                ContactSerializer.update(
                     self,
                     instance.facilitator,
                     facilitator

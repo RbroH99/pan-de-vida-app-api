@@ -95,12 +95,15 @@ class PrivateContactAPITests(TestCase):
 
     def test_create_contact(self):
         """Test authenticated creating a contact success."""
-        user = create_user()
         payload = {
             "name": "Name",
             "lastname": "Last Name",
             "gender": "M",
-            "user": user.id,
+            "user": {
+                "name": "New Name",
+                "email": "newname@example.com",
+                "password": "testpass123"
+                },
             "address": "St.Domingo 114A b/Heroes Lane and Columbia, Tijuana."
         }
         res = self.client.post(CONTACTS_URL, payload, format='json')
@@ -149,12 +152,15 @@ class PrivateContactAPITests(TestCase):
 
     def test_create_note_on_contact_create(self):
         """"Test creating a new note on a new contact creation."""
-        user = create_user()
         payload = {
             "name": "Name",
             "lastname": "Last Name",
             "gender": "M",
-            "user": user.id,
+            "user": {
+                "name": "New Name",
+                "email": "newname@example.com",
+                "password": "testpass123"
+                },
             "address": "St.Domingo 114A b/Heroes Lane and Columbia, Tijuana.",
             "note": {"note": "Nota de prueba para la api."},
         }
