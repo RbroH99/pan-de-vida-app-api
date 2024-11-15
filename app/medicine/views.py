@@ -129,7 +129,8 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
             detail=False, methods=['get'], url_path='name-group')
     def name_group(self, request):
         """
-        Returns medicines for a given name, ordered by measurement
+        Returns medicines for a given name and presentation,
+        ordered by measurement
         """
         queryset = self.get_queryset().order_by(
                 'name',
@@ -143,7 +144,16 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
 
         presentation_name = self.request.query_params.get('presentation', None)
         if presentation_name:
-            queryset.filter(presentation__name=presentation_name)
+            try:
+                presentation_id = MedicinePresentation.objects.get(
+                    name=presentation_name
+                ).id
+                queryset = queryset.filter(presentation=presentation_id)
+            except MedicinePresentation.DoesNotExist:
+                return Response(
+                    {"detail": "Presentation does not exist"},
+                    status=400
+                )
 
         page = self.paginate_queryset(queryset)
         if page is not None:
