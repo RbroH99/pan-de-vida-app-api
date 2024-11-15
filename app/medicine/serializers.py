@@ -45,7 +45,7 @@ class MedClassSerializer(BasicNameOnlyModelSerializer):
         return classification
 
 
-class MedicinePresentationSerializer(serializers.ModelSerializer):
+class MedicinePresentationSerializer(BasicNameOnlyModelSerializer):
     """Serializer fo the medclass endpoints."""
 
     class Meta(BasicNameOnlyModelSerializer.Meta):
@@ -73,7 +73,7 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
         model = Medicine
         fields = BasicNameOnlyModelSerializer.Meta.fields + \
             ['presentation', 'classification', 'measurement',
-             'measurement_units', 'quantity']
+             'measurement_units', 'quantity', 'expiration_date']
 
     def nameonly_attr_validation(self, incoming_data, classname, model_class):
         """Validates nameonly attributes passed to medicine endpoint."""
@@ -203,15 +203,30 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
             instance.quantity
         )
 
+        instance.expiration_date = validated_data.get(
+            "expiration_date",
+            instance.expiration_date
+        )
+
         instance.save()
 
         return instance
 
     def to_representation(self, instance):
         """Returns medicine json excluding quantity if not admin."""
+        if type(instance) is dict:
+            instance['presentation'] = MedicinePresentation.objects.get(
+                id=instance["presentation"]
+            )
+            instance['classification'] = MedClass.objects.get(
+                id=instance["classification"]
+            )
         representation = super().to_representation(instance)
+        if type(instance) is dict:
+            representation["total_quantity"] = instance["total_quantity"]
         user = self.context['request'].user
-        if user.role != 1:
+
+        if user.role > 1:
             representation.pop("quantity", None)
         return representation
 

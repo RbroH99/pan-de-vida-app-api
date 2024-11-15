@@ -32,7 +32,7 @@ class Note(models.Model):
 class UserManager(BaseUserManager):
     """Manager for the users."""
 
-    def create_unique_name_from_email(email):
+    def create_unique_name_from_email(self, email):
         """Creates a unique name from email."""
         base_name = email.split('@')[0]
         name = base_name
@@ -51,7 +51,7 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, role=role, **extra_fields)
 
         if not password:
-            raise ValueError('Password must be provided!')
+            user.is_active = False
         user.set_password(password)
         user.save(using=self._db)
 
@@ -67,7 +67,7 @@ class UserManager(BaseUserManager):
             user.name = name
         user.is_superuser = True
         user.is_staff = True
-        user.role = 1
+        user.role = 0
         if not password:
             raise ValueError('Password must be provided!')
         user.set_password(password)
@@ -76,26 +76,27 @@ class UserManager(BaseUserManager):
         return user
 
     def create_church_staffuser(
-            self, email, password, role=4, name=''
+            self, email, password=None, role=4, name=''
             ) -> 'User':
         """Create staffuser of church with given details."""
         if email:
             email = self.normalize_email(email)
-            user = self.model(email=email)
+            user = self.create_user(email=email)
             if not name:
                 name = self.create_unique_name_from_email(email)
 
         if name:
             user.name = name
         user.is_staff = False
-        if role not in [4, 5]:
+        if role not in [3, 4]:
             raise ValueError(
                 'Only priest and facilitators can be created with this method!'
                 )
         user.role = role
         if not password:
-            raise ValueError('Password must be provided!')
-        user.set_password(password)
+            user.is_active = False
+        else:
+            user.set_password(password)
         user.save(using=self._db)
 
         return user
@@ -172,6 +173,7 @@ class Medicine(models.Model):
                                          default='-'
                                          )
     quantity = models.IntegerField(null=False, blank=False, default=0)
+    expiration_date = models.DateField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f'Name: {self.name}, Quantity: {self.quantity}'

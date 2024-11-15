@@ -23,7 +23,10 @@ from core.utils import (
     gender_choices
 )
 
-from user.serializers import UserSerializer
+from user.serializers import (
+    EmailConfirmationMessageSerializer,
+    UserSerializer
+)
 
 import re
 
@@ -70,7 +73,7 @@ class ContactSerializer(serializers.ModelSerializer):
 
         if user:
             user_instance = get_user_model()\
-                        .objects.create(
+                        .objects.create_user(
                             **user
                     )
             contact.user = user_instance
@@ -122,27 +125,27 @@ class ContactSerializer(serializers.ModelSerializer):
         try:
             contact = Contact.objects.create(**validated_data)
         except Exception as e:
-            raise serializers.ErrorDetail(str(e), code=500)
+            raise e
 
         try:
             if user:
                 password = user.pop('password', None)
-                if not password:
-                    raise serializers.ValidationError("Password is required")
                 name = user.pop('name', None)
                 user = get_user_model().objects.create_church_staffuser(
-                    role=user.role,
-                    password=user.password,
+                    role=user.get("role", 4),
+                    password=password,
                     name=name,
-                    email=user.email
+                    email=user['email']
                 )
                 contact.user = user
+                confirmation_serializer = EmailConfirmationMessageSerializer()
+                confirmation_serializer.send_confirmation_email(user)
 
             if note:
                 note = Note.objects.create(**note)
                 contact.note = note
         except Exception as e:
-            raise serializers.ErrorDetail(str(e), code=500)
+            raise e
 
         contact.save()
 

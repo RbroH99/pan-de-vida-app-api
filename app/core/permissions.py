@@ -7,7 +7,16 @@ class IsAdminRole(BasePermission):
     def has_permission(self, request, view):
         user_role = getattr(request.user, 'role', None)
 
-        return user_role == 1
+        return user_role == 0
+
+
+class IsAgentMinimun(BasePermission):
+    """Allows access only users with minimun agent role."""
+
+    def has_permission(self, request, view):
+        user_role = getattr(request.user, 'role', None)
+
+        return user_role <= 2
 
 
 class IsNotDonor(BasePermission):

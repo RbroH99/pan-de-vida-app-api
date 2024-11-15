@@ -5,6 +5,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django_filters.rest_framework import DjangoFilterBackend
 
+from django.db.models import Sum
+
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
@@ -81,6 +83,83 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
                 )
             serializer.save(presentation=presentation)
         return serializer.save()
+
+    @action(
+            detail=False, methods=['get'], url_path='primary-group')
+    def primary_group(self, request):
+        """
+        Returns medicines grouped by name first and after by presentation,
+        ordered by the measurement and adding the total quantity.
+        """
+        queryset = self.filter_queryset(
+            self.get_queryset()
+            .defer('expiration_date')
+            .values(
+                'name',
+                'presentation',
+                'classification',
+                'measurement',
+                'measurement_units'
+            )
+            .order_by('measurement_units', 'measurement', 'presentation__name')
+            .annotate(total_quantity=Sum('quantity'))
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers.MedicineSerializer(
+                page,
+                many=True,
+                context={'request': request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        ordering = request.query_params.get("ordering", None)
+        if ordering:
+            queryset = self.get_queryset().order_by(ordering)
+
+        serializer = serializers.MedicineSerializer(
+            queryset,
+            many=True,
+            context={'request': request}
+        )
+        return Response(serializer.data)
+
+    @action(
+            detail=False, methods=['get'], url_path='name-group')
+    def name_group(self, request):
+        """
+        Returns medicines for a given name, ordered by measurement
+        """
+        queryset = self.get_queryset().order_by(
+                'name',
+                'expiration_date',
+                'measurement_units',
+                'measurement',
+                'presentation'
+            ).filter(
+                name=self.request.query_params.get('name'),
+            )
+
+        presentation_name = self.request.query_params.get('presentation', None)
+        if presentation_name:
+            queryset.filter(presentation__name=presentation_name)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers.MedicineSerializer(
+                page,
+                many=True,
+                context={'request': request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = serializers.MedicineSerializer(
+            queryset,
+            many=True,
+            context={'request': request}
+        )
+        return Response(serializer.data)
 
 
 class DiseaseViewSet(BaseNameOnlyPrivateModel):

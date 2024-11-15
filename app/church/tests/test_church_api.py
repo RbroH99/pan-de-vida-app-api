@@ -4,6 +4,7 @@ Tests for the Church API.
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.core import mail
 
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -101,7 +102,7 @@ class PrivateChurchAPITest(TestCase):
         self.user = get_user_model().objects.create_user(
             id=999999,
             email='test@example.com',
-            password='testpass'
+            password='testpass',
         )
         self.client.force_authenticate(user=self.user)
         self.denomination = Denomination.objects.create(name="Self denom")
@@ -200,6 +201,44 @@ class PrivateChurchAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(res.data["priest"]['name'], payload['priest']['name'])
+
+    def test_create_church_with_new_priest_user(self):
+        """Test creating a new Church with unexisting priest user info."""
+        payload = {
+            "name": "New Church Name",
+            "denomination": self.denomination.id,
+            "priest": {
+                "name": "Test Priest",
+                "user": {
+                    "email": "testpriest@example.com",
+                }
+            }
+        }
+
+        res = self.client.post(CHURCH_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Confirma tu cuenta', mail.outbox[0].subject)
+
+    def test_create_church_with_new_facilitator_user(self):
+        """Test creating a new Church with unexisting facilitator user info."""
+        payload = {
+            "name": "New Church Name",
+            "denomination": self.denomination.id,
+            "facilitator": {
+                "name": "Test Facilitator",
+                "user": {
+                    "email": "testfacilitator@example.com",
+                }
+            }
+        }
+
+        res = self.client.post(CHURCH_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Confirma tu cuenta', mail.outbox[0].subject)
 
     def test_create_church_with_new_facilitator_data(self):
         """Test creating a new Church with unexisting facilitator info."""

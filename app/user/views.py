@@ -4,7 +4,7 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 """
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, viewsets, status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -17,15 +17,62 @@ from django.http import Http404
 from user.serializers import (
     UserSerializer,
     PasswordResetRequestSerializer,
-    PasswordResetSerializer
+    PasswordResetSerializer,
+    EmailConfirmationSerializer,
+    SetPasswordSerializer,
+    AdminUserSerializer
 )
 
-from core.permissions import IsAdminRole
+from core.permissions import (
+    IsAdminRole,
+    IsAgentMinimun
+    )
 
 
 class CreateUserView(generics.CreateAPIView):
-    """Create a new user in the system."""
+    """View to create a new user."""
+    queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+
+
+class AdminCreateUserView(generics.CreateAPIView):
+    """View to create a new user by an admin, colaborator or agent."""
+    queryset = get_user_model().objects.all()
+    serializer_class = AdminUserSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAgentMinimun]
+    http_method_names = ['post']
+
+    def perform_create(self, serializer):
+        return super().perform_create(serializer)
+
+
+class ConfirmEmailView(APIView):
+    """View to confirm the user's email."""
+
+    def post(self, request):
+        serializer = EmailConfirmationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Email successfully confirmed."},
+                status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SetPasswordView(generics.GenericAPIView):
+    """View to set a password for the user after confirming email."""
+    serializer_class = SetPasswordSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Password successfully set."},
+                status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ManageUserView(generics.RetrieveUpdateAPIView):

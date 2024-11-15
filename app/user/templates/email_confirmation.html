@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirmación de Cuenta</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+        width: 100%;
+        line-height: 1.6;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .email-header {
+        text-align: center;
+        padding: 20px 0;
+        background-color: #28a745;
+        color: #ffffff;
+        border-radius: 10px 10px 0 0;
+      }
+      .email-header h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .email-body {
+        padding: 20px;
+      }
+      .email-body p {
+        font-size: 16px;
+        color: #333333;
+        margin-bottom: 20px;
+      }
+      .email-footer {
+        padding: 10px 0;
+        text-align: center;
+        font-size: 12px;
+        color: #999999;
+        margin-top: 30px;
+      }
+      .btn-confirm {
+        display: inline-block;
+        background-color: #28a745;
+        color: white;
+        text-decoration: none;
+        padding: 15px 25px;
+        font-size: 16px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+      }
+      .btn-confirm:hover {
+        background-color: #218838;
+      }
+      @media (max-width: 600px) {
+        .email-container {
+          padding: 10px;
+        }
+        .email-body p {
+          font-size: 14px;
+        }
+        .btn-confirm {
+          padding: 10px 20px;
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- Message header -->
+      <div class="email-header">
+        <h1>Confirmación de Cuenta</h1>
+      </div>
+      <!-- Message body -->
+      <div class="email-body">
+        <p>Hola {{ user.name }},</p>
+        <p>
+          Gracias por registrarte en Pandevida. Para completar tu registro y
+          activar tu cuenta, por favor haz clic en el botón de abajo.
+        </p>
+        <p style="text-align: center">
+          <!-- Confirm button -->
+          <a href="{{ confirmation_url }}" class="btn-confirm"
+            >Confirmar Cuenta</a
+          >
+        </p>
+        <p>
+          Si el botón no funciona, puedes copiar y pegar el siguiente enlace en
+          tu navegador:
+        </p>
+        <p>{{ confirmation_url }}</p>
+      </div>
+      <!-- Footer -->
+      <div class="email-footer">
+        <p>Si tienes alguna duda, contacta con nuestro equipo de soporte.</p>
+        <p>Pandevida © 2024</p>
+      </div>
+    </div>
+  </body>
+</html>

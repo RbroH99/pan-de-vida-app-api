@@ -19,8 +19,12 @@ from core.models import (
 from contact.serializers import (
     ContactSerializer,
     NoteSerializer,
-    DonorSerializer,
     BaseContactChildrenSerializer
+)
+
+from user.serializers import (
+    EmailConfirmationMessageSerializer,
+    UserSerializer
 )
 
 
@@ -83,6 +87,14 @@ class ChurchSerializer(BaseNameOnlyModelSerializer):
              'municipality',
              'inscript']
 
+    def user_validation(self, user_info):
+        """Validates user info for user model."""
+        user_serializer = UserSerializer(data=user_info)
+        if not user_serializer.is_valid():
+            raise serializers.ValidationError(
+                _("Provided user not valid.")
+            )
+
     def contact_validation(self, contact_info):
         """
         This method validates the contact info recieved in the
@@ -97,7 +109,30 @@ class ChurchSerializer(BaseNameOnlyModelSerializer):
             except Contact.DoesNotExist:
                 raise serializers.ValidationError(_("Contact do not exists."))
 
-        contact_info = DonorSerializer.validate_contact(self, contact_info)
+        note = contact_info.get("note", None)
+        user = contact_info.get("user", None)
+        request = self.context["request"]
+
+        if user:
+            self.user_validation(user)
+
+        if request.method == 'POST':
+            if "name" not in contact_info:
+                raise serializers.ValidationError(_("Contact needs a name."))
+
+        if note:
+            if "id" in note:
+                try:
+                    Note.objects.get(id=note["id"])
+                except Note.DoesNotExist:
+                    raise serializers.ValidationError(
+                        _("Note instance does not exists.")
+                    )
+            elif "note" not in note:
+                raise serializers.ValidationError(_("Note needs a body."))
+
+        if "gender" not in contact_info:
+            contact_info["gender"] = '-'
 
         return contact_info
 
@@ -193,7 +228,6 @@ class ChurchDetailSerializer(ChurchSerializer):
         try:
             user = instance.user
             if user:
-                user.role = 3
                 user.save()
             else:
                 validated_data.pop("gender")
@@ -201,6 +235,8 @@ class ChurchDetailSerializer(ChurchSerializer):
                     self,
                     **validated_data
                 )
+                EmailConfirmationMessageSerializer.send_confirmation_email(user)
+
             instance.user = user
             instance.save()
         except Exception as e:
