@@ -2,6 +2,7 @@
 Models for the pandevida app API.
 """
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import (
@@ -9,6 +10,10 @@ from django.contrib.auth.models import (
     PermissionsMixin,
     BaseUserManager,
 )
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import get_user_model
+from rest_framework.serializers import ValidationError
 
 from django_countries.fields import CountryField
 
@@ -401,4 +406,130 @@ class Church(models.Model):
     inscript = models.DateField(default=timezone.now)
 
     def __str__(self) -> str:
-        return f'{self.name}, {self.denomination.name}'
+        denomination_name = self.denomination.name if self.denomination else ""
+        return f'{self.name}, {denomination_name}'
+
+# ----------------------------------------------------------------------------
+
+# ARTICLE RELATED MODELS
+
+
+class Item(models.Model):
+    """Articles other than medicines."""
+    name = models.CharField(max_length=150, blank=False, null=False)
+    quantity = models.IntegerField(default=0, null=True, blank=True)
+    category = models.CharField(
+        max_length=60,
+        default="unknown",
+        blank=True,
+        null=True,
+        unique=True,
+    )
+
+    def clean_category(self):
+        self.category = str(self.category).lower()
+
+    def __str__(self):
+        return self.name
+
+# ----------------------------------------------------------------------------
+
+# DISPATCH RELATED MODELS
+
+
+class Dispatch(models.Model):
+    """Dispatch object, emitted for churchs."""
+    code = models.CharField(max_length=20, unique=True)
+    church = models.ForeignKey(Church, on_delete=models.PROTECT)
+    dispatcher = models.ForeignKey(
+        get_user_model(),
+        max_length=200,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+        )
+    date = models.DateTimeField(default=timezone.now)
+    receiver = models.CharField(max_length=250, blank=True, null=True)
+
+    def generate_code(self):
+        current_date = self.date
+        year = current_date.year
+        month = current_date.month
+        day = current_date.day
+
+        base_code = \
+            f"D{day:02d}{month:02d}{year % 100:02d}I{self.church.id:03d}"
+
+        if Dispatch.objects.filter(code__startswith=base_code).exists():
+            existing_dispatches = Dispatch.objects.filter(
+                code__startswith=base_code
+            )
+            next_number = int(
+                existing_dispatches.order_by("code").last().code[-2:]
+            ) + 1
+            self.code = f"{base_code}-{next_number:02d}"
+        else:
+            self.code = base_code
+
+    def save(self, *args, **kwargs):
+        self.generate_code()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'Dispatch {self.code} - Church: {self.church}'
+
+
+class DispatchItems(models.Model):
+    """
+    Items allotted for a church on a dispatch,
+    if stock is true can't have a beneficiary.
+    """
+    dispatch = models.ForeignKey(
+        Dispatch,
+        on_delete=models.CASCADE,
+        blank=False,
+        null=False
+    )
+
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        limit_choices_to={
+            'model__in': ['medicine', 'item']
+            }
+        )
+    object_id = models.PositiveIntegerField()
+    item = GenericForeignKey('content_type', 'object_id')
+    quantity = models.IntegerField()
+    beneficiary = models.ForeignKey(
+        Donee,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+    stock = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _('Dispatch Item')
+        verbose_name_plural = _("Dispatch Items")
+
+    def __str__(self):
+        return f'{self.item} - Quantity: {self.quantity}'
+
+    def validate_stock_beneficiary(self):
+        """Validates the relation between stock and beneficiary."""
+        if self.beneficiary is not None and self.stock:
+            raise ValidationError(
+                {"stock": "Stock can't have a beneficiary."}
+            )
+        elif not self.stock and self.beneficiary is None:
+            message = "If item is not stock, it must have a beneficiary."
+            raise ValidationError(
+                {"beneficiary": message},
+                'invalid beneficiary-stock relation'
+            )
+
+    def save(self, *args, **kwargs):
+        """Custom save method to apply clean before model save."""
+        self.validate_stock_beneficiary()
+        return super().save(*args, **kwargs)

@@ -2,6 +2,7 @@
 Test for the models.
 """
 from django.test import TestCase
+from django.utils.timezone import now
 from django.contrib.auth import get_user_model
 
 from core import models
@@ -156,3 +157,39 @@ class ModelTests(TestCase):
         )
 
         self.assertEqual(str(treatment), f'{str(donee)}, {disease.name}')
+
+
+class DispatchModelTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            email="dispatcher@example.com", password="testpassword"
+        )
+        self.church = models.Church.objects.create(name="Central Church")
+
+    def test_generate_code_on_save(self):
+        """Ensure the Dispatch generates a unique code when saved."""
+        dispatch = models.Dispatch.objects.create(
+            church=self.church,
+            dispatcher=self.user,
+            date=now().date(),
+            receiver="John Doe"
+        )
+        self.assertTrue(dispatch.code.startswith("D"))
+        self.assertIn(str(self.church.id), dispatch.code)
+        self.assertIsNotNone(dispatch.code)
+
+    def test_unique_code_generation(self):
+        """Ensure the Dispatch generates unique codes for the same day."""
+        models.Dispatch.objects.create(
+            church=self.church,
+            dispatcher=self.user,
+            date=now().date(),
+            receiver="John Doe"
+        )
+        second_dispatch = models.Dispatch.objects.create(
+            church=self.church,
+            dispatcher=self.user,
+            date=now().date(),
+            receiver="Jane Doe"
+        )
+        self.assertNotEqual(second_dispatch.code, "D180224I001")
