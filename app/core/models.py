@@ -451,6 +451,10 @@ class Dispatch(models.Model):
     date = models.DateTimeField(default=timezone.now)
     receiver = models.CharField(max_length=250, blank=True, null=True)
 
+    class Meta:
+        verbose_name = _('Dispatch')
+        verbose_name_plural = _("Dispatches")
+
     def generate_code(self):
         current_date = self.date
         year = current_date.year

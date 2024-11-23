@@ -89,7 +89,7 @@ class DispatchSerializer(serializers.ModelSerializer):
                 "quantity": item.quantity,
                 "beneficiary": {
                     "id": item.beneficiary.id if item.beneficiary else None,
-                    "name": item.beneficiary.name if item.beneficiary else None,
+                    "name": item.beneficiary.contact.name if item.beneficiary else None, # noqa
                 } if item.beneficiary else None,
             }
 
@@ -102,7 +102,7 @@ class DispatchSerializer(serializers.ModelSerializer):
                     non_stock_items[beneficiary_id] = {
                         "beneficiary": {
                             "id": item.beneficiary.id if item.beneficiary else None, # noqa
-                            "name": item.beneficiary.name if item.beneficiary else "Unknown Beneficiary", # noqa
+                            "name": item.beneficiary.contact.name if item.beneficiary else "Unknown Beneficiary", # noqa
                         },
                         "items": [],
                     }

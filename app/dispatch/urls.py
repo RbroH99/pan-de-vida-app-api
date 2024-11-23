@@ -8,7 +8,7 @@ from rest_framework.routers import DefaultRouter
 
 
 router = DefaultRouter()
-router.register('dispatch', views.DispatchViewSet)
+router.register('dispatches', views.DispatchViewSet)
 router.register('dispatch-item', views.DispatchItemViewSet)
 router.register('item', views.ItemViewSet)
 
