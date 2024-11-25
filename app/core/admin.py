@@ -81,6 +81,7 @@ class UserAdmin(BaseUserAdmin):
 
         return obj
 
+
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Denomination)
 admin.site.register(models.MedClass)

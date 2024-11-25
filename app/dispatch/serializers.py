@@ -117,6 +117,50 @@ class DispatchSerializer(serializers.ModelSerializer):
         return representation
 
 
+class DispatchListSerializer(serializers.ModelSerializer):
+    """Serializer for the dispatch list method."""
+    code = serializers.CharField(read_only=True)
+    church = serializers.PrimaryKeyRelatedField(
+        queryset=Church.objects.all(),
+        many=False,
+        required=True
+    )
+    dispatcher = serializers.PrimaryKeyRelatedField(
+        queryset=get_user_model().objects.all(),
+        many=False,
+        required=False
+    )
+
+    class Meta:
+        model = Dispatch
+        fields = [
+            "id",
+            "code",
+            "church",
+            "dispatcher",
+            "date",
+            "receiver",
+        ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        church = instance.church
+        representation["church"] = {
+            "id": church.id,
+            "name": church.name,
+            "province": str(church.municipality.province) if church.municipality else None # noqa
+        }
+
+        dispatcher = instance.dispatcher
+        representation["dispatcher"] = {
+            "id": dispatcher.id,
+            "name": dispatcher.name
+            }
+
+        return representation
+
+
 class DispatchItemSerializer(serializers.ModelSerializer):
     dispatch = serializers.PrimaryKeyRelatedField(
         queryset=Dispatch.objects.all()

@@ -20,7 +20,8 @@ from core.models import (
     Medicine,
     Item,
     Donee,
-    Contact
+    Contact,
+    Municipality
 )
 
 
@@ -222,3 +223,66 @@ class DispatchAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["church"]["name"], "Central Church")
         self.assertEqual(response.data["dispatcher"]["name"], "dispatcher")
+
+
+class FiltersOptionsActionTests(TestCase):
+    """Tests for filter-options action."""
+    def setUp(self):
+        """Configura los datos iniciales para las pruebas."""
+        self.user1 = get_user_model().objects.create(
+            name="Roberto Milan",
+            email="testuser1@example.com",
+            password="testpass123",
+            role=1)
+        self.user2 = get_user_model().objects.create(
+            name="Juan Alonso",
+            email="testuser2@example.com",
+            password="testpass123",
+            role=1)
+
+        municipality1 = Municipality.objects.create(
+            name="Centro",
+            province="Santiago"
+            )
+        municipality2 = Municipality.objects.create(
+            name="Viejo",
+            province="Habana"
+            )
+        church1 = Church.objects.create(
+            name="Iglesia A",
+            municipality=municipality1
+            )
+        church2 = Church.objects.create(
+            name="Iglesia B",
+            municipality=municipality2
+            )
+        Dispatch.objects.create(
+            church=church1,
+            dispatcher=self.user1,
+            )
+        Dispatch.objects.create(
+            church=church2,
+            dispatcher=self.user2
+            )
+        self.user_admin = get_user_model().objects.create_superuser(
+            name="Admin",
+            email="admin@example.com",
+            password="testpass123"
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user_admin)
+
+    def test_filters_options_response(self):
+        """Test the filter option-endpoint"""
+        url = reverse('dispatch:dispatch-filters-options')
+        res = self.client.get(url)
+        print("Response:", res)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        expected_response = {
+            "dispatcher__name": ["Roberto Milan", "Juan Alonso", "Admin"],
+            "code": list(Dispatch.objects.values_list("code", flat=True)),
+            "church__municipality__province": ["Santiago", "Habana"]
+        }
+        self.assertDictEqual(res.json(), expected_response)
