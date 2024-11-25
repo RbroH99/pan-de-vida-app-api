@@ -283,6 +283,8 @@ class FiltersOptionsActionTests(TestCase):
         expected_response = {
             "dispatcher__name": ["Roberto Milan", "Juan Alonso", "Admin"],
             "code": list(Dispatch.objects.values_list("code", flat=True)),
+            'date__gte': [],
+            'date__lte': [],
             "church__municipality__province": ["Santiago", "Habana"]
         }
         self.assertDictEqual(res.json(), expected_response)

@@ -94,6 +94,10 @@ class DispatchViewSet(BasePrivateModel):
                 )
                 filters[filter] = list(distinct_values)
 
+        for filter in self.filterset_class.Meta.fields:
+            if "date" in filter:
+                filters[filter] = []
+
         return Response(filters)
 
 
