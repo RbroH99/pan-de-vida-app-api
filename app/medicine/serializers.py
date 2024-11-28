@@ -224,6 +224,7 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
         representation = super().to_representation(instance)
         if type(instance) is dict:
             representation["total_quantity"] = instance["total_quantity"]
+
         user = self.context['request'].user
 
         if user.role > 1:

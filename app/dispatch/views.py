@@ -21,7 +21,8 @@ from core. models import (
     Item
 )
 from core.permissions import (
-    IsNotDonor
+    IsNotDonor,
+    IsColaboratorMinimun
 )
 
 from .filters import DispatchFilter
@@ -48,6 +49,7 @@ class DispatchViewSet(BasePrivateModel):
     """Viewset for the dispatch objects."""
     queryset = Dispatch.objects.all()
     serializer_class = serializers.DispatchSerializer
+    permission_classes = [IsAuthenticated, IsColaboratorMinimun]
     filterset_class = DispatchFilter
     search_fields = ['code', 'dispatcher__name', 'church__name', 'receiver']
     ordering_fields = ['date', 'code']
@@ -105,6 +107,7 @@ class DispatchItemViewSet(BasePrivateModel):
     """Viewset for the dispatch items objects."""
     queryset = DispatchItems.objects.all()
     serializer_class = serializers.DispatchItemSerializer
+    permission_classes = [IsAuthenticated, IsColaboratorMinimun]
     filterset_fields = ['dispatch__code', 'stock']
     search_fields = [
         'item__name',

@@ -13,6 +13,9 @@ from rest_framework.test import APITestCase
 
 from dispatch.serializers import DispatchSerializer
 
+
+from django.contrib.contenttypes.models import ContentType
+
 from core.models import (
     Dispatch,
     DispatchItems,
@@ -224,6 +227,124 @@ class DispatchAPITests(APITestCase):
         self.assertEqual(response.data["church"]["name"], "Central Church")
         self.assertEqual(response.data["dispatcher"]["name"], "dispatcher")
 
+    def test_create_dispatch_with_dispatch_items(self):
+        """Test creating a dispatch with stock and non-stock dispatch items."""
+        # Crear instancias necesarias para la prueba
+        item = Item.objects.create(name="Food Package", quantity=100)
+        donee_contact = Contact.objects.create(name="John Doe")
+        donee = Donee.objects.create(church=self.church, contact=donee_contact)
+
+        payload = {
+            "church": self.church.id,
+            "receiver": "John Doe",
+            "dispatch_items": {
+                "stock_items": [
+                    {
+                        "content_type": ContentType.objects.get_for_model(Item).id, # noqa
+                        "object_id": item.id,
+                        "quantity": 10,
+                    }
+                ],
+                "non_stock_items": [
+                    {
+                        "beneficiary": {
+                            "id": donee.id
+                        },
+                        "items": [
+                            {
+                                "content_type": ContentType.objects.get_for_model(Item).id, # noqa
+                                "object_id": item.id,
+                                "quantity": 5,
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+
+        response = self.client.post(DISPATCH_URL, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verificar la creación del despacho
+        self.assertEqual(Dispatch.objects.count(), 1)
+        dispatch = Dispatch.objects.first()
+        self.assertEqual(dispatch.church, self.church)
+        self.assertEqual(dispatch.receiver, "John Doe")
+
+        # Verificar la creación de los artículos asociados
+        dispatch_items = DispatchItems.objects.filter(dispatch=dispatch)
+        self.assertEqual(dispatch_items.count(), 2)
+
+        # Verificar el artículo de stock
+        stock_item = dispatch_items.filter(stock=True).first()
+        self.assertIsNotNone(stock_item)
+        self.assertEqual(stock_item.item, item)
+        self.assertEqual(stock_item.quantity, 10)
+
+        # Verificar el artículo no stock
+        non_stock_item = dispatch_items.filter(stock=False).first()
+        self.assertIsNotNone(non_stock_item)
+        self.assertEqual(non_stock_item.item, item)
+        self.assertEqual(non_stock_item.quantity, 5)
+        self.assertEqual(non_stock_item.beneficiary, donee)
+
+    def test_create_dispatch_invalid_dispatch_items(self):
+        """Test creating a dispatch with invalid dispatch_items."""
+        item = Item.objects.create(name="Food Package", quantity=100)
+
+        payload = {
+            "church": self.church.id,
+            "receiver": "John Doe",
+            "dispatch_items": {
+                "stock_items": [
+                    {
+                        "content_type": ContentType.objects.get_for_model(Item).id, # noqa
+                        "object_id": item.id,
+                        "quantity": -5,  # Invalid quantity
+                    }
+                ],
+            }
+        }
+
+        response = self.client.post(DISPATCH_URL, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            "quantity",
+            str(response.data["quantity"]).lower()
+        )
+
+    def test_create_dispatch_non_stock_without_beneficiary(self):
+        """
+        Test creating a dispatch with non-stock items missing a beneficiary.
+        """
+        item = Item.objects.create(name="Food Package", quantity=100)
+
+        payload = {
+            "church": self.church.id,
+            "receiver": "John Doe",
+            "dispatch_items": {
+                "non_stock_items": [
+                    {
+                        "beneficiary": None,  # Missing beneficiary
+                        "items": [
+                            {
+                                "content_type": ContentType.objects.get_for_model(Item).id, # noqa
+                                "object_id": item.id,
+                                "quantity": 5,
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+
+        response = self.client.post(DISPATCH_URL, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            "beneficiary",
+            response.data["dispatch_items"]
+        )
+
 
 class FiltersOptionsActionTests(TestCase):
     """Tests for filter-options action."""
@@ -276,7 +397,6 @@ class FiltersOptionsActionTests(TestCase):
         """Test the filter option-endpoint"""
         url = reverse('dispatch:dispatch-filters-options')
         res = self.client.get(url)
-        print("Response:", res)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
