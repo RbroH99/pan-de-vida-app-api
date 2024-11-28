@@ -19,6 +19,15 @@ class IsAgentMinimun(BasePermission):
         return user_role <= 2
 
 
+class IsColaboratorMinimun(BasePermission):
+    """Allows access only users with minimun Colaborator role."""
+
+    def has_permission(self, request, view):
+        user_role = getattr(request.user, 'role', None)
+
+        return user_role <= 1
+
+
 class IsNotDonor(BasePermission):
     """Allows access only if user is not Donor."""
 
