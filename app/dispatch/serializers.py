@@ -23,6 +23,14 @@ class ItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'quantity', 'category']
         read_only_fields = ['id']
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        user = self.context['request'].user
+
+        if user.role > 1:
+            representation.pop("quantity", None)
+        return representation
+
 
 class DispatchSerializer(serializers.ModelSerializer):
     """Serializer for the dispatch objects."""
@@ -55,10 +63,54 @@ class DispatchSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        validated_data['dispatcher'] = self.context['request'].user
+        request = self.context['request']
+        validated_data['dispatcher'] = request.user
         validated_data['date'] = timezone.now()
+        dispatch_items_data = request.data.get('dispatch_items', {})
 
-        return super().create(validated_data)
+        dispatch = super().create(validated_data)
+
+        for item_data in dispatch_items_data.get("stock_items", []):
+            self._create_dispatch_item(dispatch, item_data, stock=True)
+
+        for non_stock in dispatch_items_data.get("non_stock_items", []):
+            beneficiary_data = non_stock.get("beneficiary", None)
+            beneficiary_id = beneficiary_data.get("id") if beneficiary_data else None # noqa
+
+            if beneficiary_id:
+                try:
+                    beneficiary = Donee.objects.get(pk=beneficiary_id)
+                except Donee.DoesNotExist:
+                    raise serializers.ValidationError(
+                        {"dispatch_items": f"Beneficiary with id {beneficiary_id} does not exist."} # noqa
+                    )
+            else:
+                raise serializers.ValidationError(
+                    {"dispatch_items": "Each non-stock item must have a valid beneficiary."} # noqa
+                )
+
+            for item_data in non_stock.get("items", []):
+                self._create_dispatch_item(
+                    dispatch, item_data, stock=False, beneficiary=beneficiary
+                )
+
+        return dispatch
+
+    def _create_dispatch_item(
+            self, dispatch, item_data, stock, beneficiary=None
+            ):
+        """Helper method to create a DispatchItem."""
+        item_data["dispatch"] = dispatch.id
+        item_data["stock"] = stock
+        if beneficiary:
+            item_data["beneficiary"] = beneficiary.id
+
+        serializer = DispatchItemSerializer(
+            data=item_data,
+            context=self.context
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
