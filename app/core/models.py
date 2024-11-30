@@ -500,9 +500,11 @@ class DispatchItems(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={
             'model__in': ['medicine', 'item']
-            }
+            },
+        blank=False,
+        null=False
         )
-    object_id = models.PositiveIntegerField()
+    object_id = models.PositiveIntegerField(blank=False, null=False)
     item = GenericForeignKey('content_type', 'object_id')
     quantity = models.IntegerField()
     beneficiary = models.ForeignKey(
