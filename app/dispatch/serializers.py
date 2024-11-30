@@ -241,10 +241,20 @@ class DispatchItemSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Custom DispatchItem model validations."""
+        content_type = data['content_type']
+        model_class = content_type.model_class()
+        object_id = data['object_id']
+
         # Validate quantity
-        if data['quantity'] <= 0:
+        quantity = data['quantity']
+        item_quantity = model_class.objects.get(id=object_id).quantity
+        if quantity <= 0:
             raise serializers.ValidationError(
                 {"quantity": "Quantity must be greater than 0."}
+            )
+        elif quantity > item_quantity:
+            raise serializers.ValidationError(
+                {"quantity": "Quantity must be less than item quantity."}
             )
 
         # Validate stock and beneficiary relation
@@ -259,10 +269,6 @@ class DispatchItemSerializer(serializers.ModelSerializer):
             })
 
         # Validate content_type is coherent with the object
-        content_type = data['content_type']
-        object_id = data['object_id']
-        model_class = content_type.model_class()
-
         try:
             item_instance = model_class.objects.get(pk=object_id)
         except model_class.DoesNotExist:
@@ -283,3 +289,11 @@ class DispatchItemSerializer(serializers.ModelSerializer):
                 )
 
         return data
+
+    def create(self, validated_data):
+        dispatch_item = super().create(validated_data)
+        item = dispatch_item.item
+        quantity = validated_data.get('quantity', 0)
+        item.quantity = item.quantity - quantity
+        item.save()
+        return dispatch_item
