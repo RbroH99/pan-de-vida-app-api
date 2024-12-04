@@ -232,7 +232,7 @@ class DispatchItemSerializer(serializers.ModelSerializer):
         model = DispatchItems
         fields = [
             'id', 'dispatch', 'content_type', 'object_id', 'item',
-            'quantity', 'beneficiary', 'stock'
+            'quantity', 'beneficiary', 'stock', "observation"
         ]
 
     def get_item(self, obj):

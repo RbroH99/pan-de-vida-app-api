@@ -514,6 +514,7 @@ class DispatchItems(models.Model):
         on_delete=models.SET_NULL
     )
     stock = models.BooleanField(default=False)
+    observation = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = _('Dispatch Item')

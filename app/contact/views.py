@@ -172,6 +172,7 @@ class DoneeViewSet(BasePrivateViewSet):
     serializer_class = serializers.DoneeDetailSerializer
     filterset_fields = [
         'contact__gender',
+        'church__id',
         'church__denomination__name',
         'church__municipality__province']
     search_fields = ['contact__name', 'contact__lastname']
