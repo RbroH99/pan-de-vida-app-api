@@ -9,9 +9,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from rest_framework import (
     viewsets,
 )
+
+from django.contrib.contenttypes.models import ContentType
 
 from dispatch import serializers
 
@@ -116,3 +119,10 @@ class DispatchItemViewSet(BasePrivateModel):
     ]
     ordering_fields = ['item__name']
     ordering = ['dispatch__date', 'item__name']
+
+    @action(methods=['get', 'list'], detail=False, url_path='content-types')
+    def content_types(self, request, *args, **kwargs):
+        content_types = ContentType.objects.filter(
+            model__in=['medicine', 'item']
+            ).values('id', 'app_label', 'model')
+        return Response(content_types)
