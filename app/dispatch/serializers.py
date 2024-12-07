@@ -62,11 +62,40 @@ class DispatchSerializer(serializers.ModelSerializer):
             value = self.context['request'].user
         return value
 
+    def _validate_dispatch_item(self, dispatch_items_data, stock=False):
+        """Validates the dispatch items without having created dispatch."""
+        for item_data in dispatch_items_data:
+            if not item_data.get("quantity", None):
+                raise serializers.ValidationError(
+                    {"dispatch_items": "Quantity must is required"},
+                    code="required",
+                )
+            elif item_data.get("quantity", 0) <= 0:
+                raise serializers.ValidationError(
+                    {"dispatch_items": "Quantity must be greater than 0"},
+                    code="invalid",
+                )
+            elif not item_data.get("content_type", None):
+                raise serializers.ValidationError(
+                    {"dispatch_items": "Content type is required."}
+                )
+            elif not item_data.get("object_id", None):
+                raise serializers.ValidationError(
+                    {"dispatch_items": "Object id is required."}
+                    )
+
     def create(self, validated_data):
         request = self.context['request']
         validated_data['dispatcher'] = request.user
         validated_data['date'] = timezone.now()
         dispatch_items_data = request.data.get('dispatch_items', {})
+
+        # Validate dispatch items data before attempting to create dispatch
+        non_stock_items = dispatch_items_data.get("non_stock_items", [])
+        for item in non_stock_items:
+            self._validate_dispatch_item(item["items"], stock=False)
+        stock_items = dispatch_items_data.get("stock_items", [])
+        self._validate_dispatch_item(stock_items, stock=True)
 
         dispatch = super().create(validated_data)
 
