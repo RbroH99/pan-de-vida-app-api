@@ -165,6 +165,10 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
                 queryset = queryset.filter(measurement_units=measurement_units)
             queryset = queryset.filter(measurement=measurement)
 
+        show_zero = self.request.query_params.get("show_zero", False)
+        if not show_zero:
+            queryset = queryset.filter(quantity__gt=0)
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = serializers.MedicineSerializer(

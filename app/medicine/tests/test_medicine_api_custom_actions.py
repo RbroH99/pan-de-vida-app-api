@@ -130,3 +130,23 @@ class PrivateMedicineCustomActionsAPITests(TestCase):
             medicines, many=True, context={'request': request_mock}
         )
         self.assertEqual(res.data['results'], serializer.data)
+
+    def test_show_zero_param(self):
+        """Test the show_zero query param works correctly."""
+        create_medicine(name="Medicine1", measurement=50, quantity=5)
+        create_medicine(
+            name="Medicine1",
+            presentation_name="Box",
+            measurement=100,
+            quantity=10)
+        create_medicine(name="Medicine2", measurement=75, quantity=0)
+
+        url = reverse('medicine:medicine-name-group')
+        res = self.client.get(
+            f"{url}?name=Medicine2&presentation=Box&limit=2&offset=0&"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertIn('results', res.data)
+        self.assertEqual(res.data['results'], [])
