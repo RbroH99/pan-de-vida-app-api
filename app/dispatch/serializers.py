@@ -64,6 +64,10 @@ class DispatchSerializer(serializers.ModelSerializer):
 
     def _validate_dispatch_item(self, dispatch_items_data, stock=False):
         """Validates the dispatch items without having created dispatch."""
+        if len(dispatch_items_data) == 0:
+            raise serializers.ValidationError(
+                {"dispatch_items": "Items are required."}
+                )
         for item_data in dispatch_items_data:
             if not item_data.get("quantity", None):
                 raise serializers.ValidationError(
