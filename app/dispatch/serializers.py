@@ -84,6 +84,17 @@ class DispatchSerializer(serializers.ModelSerializer):
                     {"dispatch_items": "Object id is required."}
                     )
 
+            content_type = ContentType.objects.get_for_id(
+                item_data.get("content_type", None)
+                )
+            object_id = item_data.get("object_id", None)
+            model_class = content_type.model_class()
+            item_quantity = model_class.objects.get(id=object_id).quantity
+            if item_data.get("quantity", 0) > item_quantity:
+                raise serializers.ValidationError(
+                    {"quantity": "Quantity must be less than item quantity."}
+                )
+
     def create(self, validated_data):
         request = self.context['request']
         validated_data['dispatcher'] = request.user
@@ -103,8 +114,7 @@ class DispatchSerializer(serializers.ModelSerializer):
             self._create_dispatch_item(dispatch, item_data, stock=True)
 
         for non_stock in dispatch_items_data.get("non_stock_items", []):
-            beneficiary_data = non_stock.get("beneficiary", None)
-            beneficiary_id = beneficiary_data.get("id") if beneficiary_data else None # noqa
+            beneficiary_id = non_stock.get("beneficiary", None)
 
             if beneficiary_id:
                 try:
