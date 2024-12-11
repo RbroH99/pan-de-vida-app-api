@@ -185,6 +185,72 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
         )
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], url_path='grouped-medicines')
+    def grouped_medicines(self, request):
+        """
+        Returns medicines grouped by name.
+        Example:
+        {
+            "dipirona": [
+                {"id": 3, "measurement": 350, "measurement_units": "mg"},
+                {"id": 5, "measurement": 500, "measurement_units": "mg"}
+            ],
+            "amitriptilina": [
+                {"id": 8, "measurement": 200, "measurement_units": "ml"}
+            ]
+        }
+        """
+        queryset = self.get_queryset()
+
+        # Apply filters if needed
+        name = request.query_params.get('name', None)
+        if name:
+            queryset = queryset.filter(name=name)
+        presentation_name = request.query_params.get(
+            'presentation', None
+        )
+
+        if presentation_name:
+            try:
+                presentation_id = MedicinePresentation.objects.get(
+                    name=presentation_name
+                ).id
+                queryset = queryset.filter(presentation=presentation_id)
+            except MedicinePresentation.DoesNotExist:
+                return Response(
+                    {"detail": "Presentation does not exist"},
+                    status=400
+                )
+
+        # Aditional filters (optional)
+        measurement = request.query_params.get('measurement', None)
+        measurement_units = request.query_params.get(
+            'measurement_units', None
+        )
+
+        if measurement:
+            if measurement_units:
+                queryset = queryset.filter(
+                    measurement_units=measurement_units
+                )
+            queryset = queryset.filter(measurement=measurement)
+        show_zero = request.query_params.get("show_zero", False)
+        if not show_zero:
+            queryset = queryset.filter(quantity__gt=0)
+
+        # Agrupar medicamentos por nombre
+        grouped_medicines = {}
+        for medicine in queryset:
+            name = medicine.name
+            if name not in grouped_medicines:
+                grouped_medicines[name] = []
+            grouped_medicines[name].append({
+                "id": medicine.id,
+                "measurement": medicine.measurement,
+                "measurement_units": medicine.measurement_units
+            })
+        return Response(grouped_medicines)
+
 
 class DiseaseViewSet(BaseNameOnlyPrivateModel):
     """Manage disease endpoints."""
