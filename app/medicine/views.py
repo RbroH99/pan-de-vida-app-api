@@ -188,15 +188,19 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
     @action(detail=False, methods=['get'], url_path='grouped-medicines')
     def grouped_medicines(self, request):
         """
-        Returns medicines grouped by name.
+        Returns medicines grouped by name and presentation.
         Example:
         {
             "dipirona": [
-                {"id": 3, "measurement": 350, "measurement_units": "mg"},
-                {"id": 5, "measurement": 500, "measurement_units": "mg"}
+                {"Tabletas": [
+                    {"id": 3, "measurement": 350, "measurement_units": "mg"},
+                    {"id": 5, "measurement": 500, "measurement_units": "mg"}
+                ]},
             ],
             "amitriptilina": [
-                {"id": 8, "measurement": 200, "measurement_units": "ml"}
+                {"Ovulo": [
+                    {"id": 8, "measurement": 200, "measurement_units": "ml"}
+                ]}
             ]
         }
         """
@@ -206,10 +210,7 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
         name = request.query_params.get('name', None)
         if name:
             queryset = queryset.filter(name=name)
-        presentation_name = request.query_params.get(
-            'presentation', None
-        )
-
+        presentation_name = request.query_params.get('presentation', None)
         if presentation_name:
             try:
                 presentation_id = MedicinePresentation.objects.get(
@@ -222,33 +223,42 @@ class MedicineViewSet(BaseNameOnlyPrivateModel):
                     status=400
                 )
 
-        # Aditional filters (optional)
         measurement = request.query_params.get('measurement', None)
-        measurement_units = request.query_params.get(
-            'measurement_units', None
-        )
-
+        measurement_units = request.query_params.get('measurement_units', None)
         if measurement:
             if measurement_units:
-                queryset = queryset.filter(
-                    measurement_units=measurement_units
-                )
+                queryset = queryset.filter(measurement_units=measurement_units)
             queryset = queryset.filter(measurement=measurement)
+
         show_zero = request.query_params.get("show_zero", False)
         if not show_zero:
             queryset = queryset.filter(quantity__gt=0)
 
-        # Agrupar medicamentos por nombre
+        # Group medicines by name and presentation
         grouped_medicines = {}
         for medicine in queryset:
             name = medicine.name
+            presentation_name = medicine.presentation.name if medicine.presentation else "Unknown" # noqa
+
             if name not in grouped_medicines:
                 grouped_medicines[name] = []
-            grouped_medicines[name].append({
+
+            # Searchs if presentation dict already exists
+            presentation_group = next(
+                (group for group in grouped_medicines[name] if presentation_name in group), # noqa
+                None
+            )
+            if not presentation_group:
+                presentation_group = {presentation_name: []}
+                grouped_medicines[name].append(presentation_group)
+
+            presentation_group[presentation_name].append({
                 "id": medicine.id,
                 "measurement": medicine.measurement,
-                "measurement_units": medicine.measurement_units
+                "measurement_units": medicine.measurement_units,
+                "quantity": medicine.quantity
             })
+
         return Response(grouped_medicines)
 
 

@@ -64,14 +64,14 @@ class DispatchSerializer(serializers.ModelSerializer):
 
     def _validate_dispatch_item(self, dispatch_items_data, stock=False):
         """Validates the dispatch items without having created dispatch."""
-        if len(dispatch_items_data) == 0:
+        if len(dispatch_items_data) == 0 and not stock:
             raise serializers.ValidationError(
                 {"dispatch_items": "Items are required."}
                 )
         for item_data in dispatch_items_data:
             if not item_data.get("quantity", None):
                 raise serializers.ValidationError(
-                    {"dispatch_items": "Quantity must is required"},
+                    {"dispatch_items": "Quantity is required"},
                     code="required",
                 )
             elif item_data.get("quantity", 0) <= 0:
@@ -96,7 +96,12 @@ class DispatchSerializer(serializers.ModelSerializer):
             item_quantity = model_class.objects.get(id=object_id).quantity
             if item_data.get("quantity", 0) > item_quantity:
                 raise serializers.ValidationError(
-                    {"quantity": "Quantity must be less than item quantity."}
+                    {
+                        "quantity":
+                        {
+                            str(model_class.objects.get(id=item_data["object_id"])): "Quantity must be less than item quantity." # noqa
+                            }
+                            }
                 )
 
     def create(self, validated_data):
@@ -147,6 +152,8 @@ class DispatchSerializer(serializers.ModelSerializer):
         item_data["stock"] = stock
         if beneficiary:
             item_data["beneficiary"] = beneficiary.id
+        if item_data.get("observation", None):
+            item_data["observation"] = item_data.get("observation", None)
 
         serializer = DispatchItemSerializer(
             data=item_data,
@@ -186,6 +193,7 @@ class DispatchSerializer(serializers.ModelSerializer):
                     "id": item.beneficiary.id if item.beneficiary else None,
                     "name": item.beneficiary.contact.name if item.beneficiary else None, # noqa
                 } if item.beneficiary else None,
+                "observation": item.observation
             }
 
             if item.stock:
@@ -197,7 +205,7 @@ class DispatchSerializer(serializers.ModelSerializer):
                     non_stock_items[beneficiary_id] = {
                         "beneficiary": {
                             "id": item.beneficiary.id if item.beneficiary else None, # noqa
-                            "name": item.beneficiary.contact.name if item.beneficiary else "Unknown Beneficiary", # noqa
+                            "name": f"{item.beneficiary.contact.name} {item.beneficiary.contact.lastname}" if item.beneficiary else "Unknown Beneficiary", # noqa
                         },
                         "items": [],
                     }
@@ -208,6 +216,15 @@ class DispatchSerializer(serializers.ModelSerializer):
             "stock_items": stock_items,
             "non_stock_items": list(non_stock_items.values()),
         }
+
+        representation["observations"] = []
+        for item in dispatch_items.filter(observation__isnull=False):
+            representation["observations"].append({
+                "beneficiary": f"{item.beneficiary.contact.name} {item.beneficiary.contact.lastname}" if item.beneficiary else "Unknown Beneficiary", # noqa
+                "stock": item.stock,
+                "item": str(item.item),
+                "observation": item.observation
+            })
 
         return representation
 

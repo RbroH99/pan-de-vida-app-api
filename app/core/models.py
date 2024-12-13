@@ -181,7 +181,7 @@ class Medicine(models.Model):
     expiration_date = models.DateField(null=True, blank=True)
 
     def __str__(self) -> str:
-        return f'Name: {self.name}, Quantity: {self.quantity}'
+        return f'{self.name}-{self.presentation.name if self.presentation else ""} {self.measurement}{self.measurement_units}' # noqa
 
 
 class Disease(models.Model):
