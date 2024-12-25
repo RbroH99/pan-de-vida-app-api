@@ -8,6 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import (
     viewsets,
@@ -25,10 +26,13 @@ from core.models import (
     WorkingSite,
     Medic,
     Donor,
-    Donee
+    Donee,
+    Treatment
 )
 from core.utils import gender_choices
 from core.filters import ContactFilterset
+
+from medicine.serializers import MedicineSerializer
 
 
 class BasePrivateViewSet(viewsets.ModelViewSet):
@@ -188,3 +192,21 @@ class DoneeViewSet(BasePrivateViewSet):
     def destroy(self, request, *args, **kwargs):
         """Deletes a donee instance with his assossiated contact."""
         return self._contact_children_destroy(request, *args, **kwargs)
+
+    @action(methods=['get'], detail=True, url_path='diseases')
+    def diseases(self, request, *args, **kwargs):
+        donee = self.get_object()
+        donee_treatments = Treatment.objects.filter(donee=donee)
+
+        donee_diseases = {}
+        for treatment in donee_treatments:
+            donee_diseases[treatment.disease.name] = []
+            for medicine in treatment.medicine.all():
+                donee_diseases[treatment.disease.name].append(
+                    MedicineSerializer(
+                        medicine,
+                        context={'request': request},
+                        many=False
+                    ).data
+                )
+        return Response(donee_diseases, status=status.HTTP_200_OK)
