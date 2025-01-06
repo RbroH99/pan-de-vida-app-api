@@ -56,7 +56,7 @@ class MunicipalitySerializer(BaseNameOnlyModelSerializer):
                 value for key,
                 value in PROVINCES_CUBA if key == instance.province
             ),
-            "Unknown"
+            "unknown"
         )
 
         return representation
@@ -314,7 +314,8 @@ class ChurchDetailSerializer(ChurchSerializer):
         """
         priest = validated_data.pop('priest', None)
         facilitator = validated_data.pop('facilitator', None)
-        municipality = validated_data.pop('municipality', None)
+        municipality = self.initial_data.pop('municipality', None)
+        validated_data.pop("municipality")
 
         instance = super().update(instance, validated_data)
 
@@ -355,7 +356,8 @@ class ChurchDetailSerializer(ChurchSerializer):
                 instance.facilitator = contact
 
         if municipality:
-            if "id" in municipality:
+            id = municipality.get('id', None)
+            if id:
                 church_mun = Municipality.objects.get(id=municipality['id'])
 
                 if church_mun.province == "UNK" and (
@@ -369,7 +371,8 @@ class ChurchDetailSerializer(ChurchSerializer):
                 elif instance.municipality.id != church_mun.id:
                     instance.municipality = church_mun
             else:
-                if "province" not in municipality:
+                province = municipality.get("province", None)
+                if province:
                     church_mun, created = Municipality.objects.get_or_create(
                         name=municipality['name']
                     )
