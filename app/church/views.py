@@ -40,6 +40,7 @@ class MunicipalityViewSet(BasePrivateViewSet):
     """Viewset for the municipality."""
     serializer_class = serializers.MunicipalitySerializer
     queryset = Municipality.objects.all()
+    filterset_fields = ['province']
 
 
 class DenominationViewSet(BasePrivateViewSet):

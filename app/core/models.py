@@ -361,6 +361,13 @@ class Municipality(models.Model):
         choices=PROVINCES_CUBA,
         default='UNK')
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'province'],
+                name='unique_municipality_province')
+        ]
+
     def __str__(self) -> str:
         return f'{self.name}, {self.province}'
 
@@ -384,7 +391,7 @@ class Church(models.Model):
     denomination = models.ForeignKey(Denomination,
                                      null=True,
                                      blank=True,
-                                     on_delete=models.SET_NULL)
+                                     on_delete=models.SET_NULL,)
     priest = models.OneToOneField(Contact,
                                   null=True,
                                   blank=True,
