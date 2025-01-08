@@ -547,3 +547,49 @@ class DispatchItems(models.Model):
         """Custom save method to apply clean before model save."""
         self.validate_stock_beneficiary()
         return super().save(*args, **kwargs)
+
+# -----------------------------------------------------------------------
+
+# ANNOUNCEMNETS RELATED MODELS
+
+
+class Announcement(models.Model):
+    """Announcement object."""
+    title = models.CharField(max_length=150, blank=False, null=False)
+    content = models.TextField(blank=False, null=False)
+    date = models.DateTimeField(default=timezone.now)
+    initial_date = models.DateField(blank=True, null=True)
+    final_date = models.DateField(blank=True, null=True)
+    directed_to = models.JSONField(blank=True, null=True)
+    is_public = models.BooleanField(default=False)
+    author = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    def clean(self):
+        if self.initial_date and self.final_date:
+            if self.initial_date > self.final_date:
+                message = "Initial date can't be after final date."
+                raise ValidationError(
+                    {
+                        "initial_date": message
+                    }
+                )
+        allowed_roles = range(0, 6)
+        if self.directed_to:
+            if not all(role in allowed_roles for role in self.directed_to):
+                raise ValidationError({
+                    "directed_to": "One or more roles are invalid."
+                })
+        return super().clean()
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        return super().clean()
+
+    def __str__(self):
+        return f'{self.title}-{self.date.date()}'

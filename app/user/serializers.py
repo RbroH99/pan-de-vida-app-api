@@ -54,7 +54,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Update and return user."""
-        if self.context["request"].user.role != 1:
+        if self.context["request"].user.role > 1:
             validated_data.pop("role", None)
         password = validated_data.pop('password', None)
         user = super().update(instance, validated_data)

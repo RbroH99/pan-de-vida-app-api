@@ -48,6 +48,7 @@ urlpatterns = [
     path('church/', include('church.urls')),
     path('user/', include('user.urls')),
     path('dispatch/', include('dispatch.urls')),
+    path('announcement/', include('announcement.urls')),
     path(
         'api/token/',
         RoleIncludedTokenObtainView.as_view(),

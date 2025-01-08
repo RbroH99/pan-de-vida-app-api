@@ -4,6 +4,7 @@ Test for the models.
 from django.test import TestCase
 from django.utils.timezone import now
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import ValidationError
 
 from core import models
 
@@ -43,7 +44,7 @@ class ModelTests(TestCase):
         medicine = models.Medicine.objects.create(name="Aspirina")
 
         self.assertEqual(str(medicine),
-                         f'Name: {medicine.name}, Quantity: {medicine.quantity}'
+                         f'{medicine.name}-{medicine.presentation.name if medicine.presentation else ""} {medicine.measurement}{medicine.measurement_units}' # noqa
                          )
 
     def test_create_contact(self):
@@ -193,3 +194,51 @@ class DispatchModelTests(TestCase):
             receiver="Jane Doe"
         )
         self.assertNotEqual(second_dispatch.code, "D180224I001")
+
+
+class AnnouncementModelTests(TestCase):
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            email='testuser@example.com',
+            password='testpass123'
+        )
+
+    def test_create_announcement_with_valid_data(self):
+        announcement = models.Announcement(
+            title="Test Announcement",
+            content="This is a test announcement.",
+            initial_date="2023-10-01",
+            final_date="2023-10-10",
+            directed_to=[1, 2],
+            is_public=False,
+            author=self.user
+        )
+        announcement.save()
+        self.assertEqual(models.Announcement.objects.count(), 1)
+
+    def test_create_announcement_with_invalid_dates(self):
+        announcement = models.Announcement(
+            title="Test Announcement",
+            content="This is a test announcement.",
+            initial_date="2023-10-10",
+            final_date="2023-10-01",
+            directed_to=[1, 2],
+            is_public=False,
+            author=self.user
+        )
+        with self.assertRaises(ValidationError):
+            announcement.save()
+
+    def test_create_announcement_with_invalid_roles(self):
+        announcement = models.Announcement(
+            title="Test Announcement",
+            content="This is a test announcement.",
+            initial_date="2023-10-01",
+            final_date="2023-10-10",
+            directed_to=[1, 99],  # 99 is an invalid role
+            is_public=False,
+            author=self.user
+        )
+        with self.assertRaises(ValidationError):
+            announcement.save()

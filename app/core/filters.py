@@ -2,8 +2,10 @@ from django_filters import (
     rest_framework as filters,
     CharFilter,
     NumberFilter,
+    DateFilter,
+    DateTimeFilter,
 )
-from .models import Treatment, Medicine, Contact
+from .models import Treatment, Medicine, Contact, Announcement
 
 from medicine.serializers import TreatmentSerializer
 
@@ -71,3 +73,45 @@ class ContactFilterset(filters.FilterSet):
 
     def filter_by_gender(self, queryset, name, value):
         return queryset.filter(gender=value)
+
+
+class SpecificAnnouncementsFilter(filters.Filter):
+    """Filter to isolate announces directed to specific user roles."""
+    def filter(self, qs, value):
+        if value is not None:
+            specific_ids = [instance.id for instance in qs if value in instance.directed_to] # noqa
+            qs = qs.filter(id__in=specific_ids)
+        return qs
+
+
+class AnnouncementFilterSet(filters.FilterSet):
+    """Filter Set class for Announcements viewset."""
+    initial_date = DateFilter(
+        field_name="initial_date",
+        label="Start Date",
+    )
+    final_date = DateFilter(
+        field_name='final_date',
+        label="End Date"
+        )
+    date__gte = DateTimeFilter(
+        field_name="date",
+        lookup_expr="gte",
+        label="Start Date")
+    date__lte = DateTimeFilter(
+        field_name="date",
+        lookup_expr="lte",
+        label="End Date")
+    directed_to = SpecificAnnouncementsFilter()
+
+    class Meta:
+        model = Announcement
+        fields = [
+            "initial_date",
+            "final_date",
+            "date__gte",
+            "date__lte",
+            "author",
+            "directed_to",
+            "is_public"
+        ]
