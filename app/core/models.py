@@ -558,8 +558,8 @@ class Announcement(models.Model):
     title = models.CharField(max_length=150, blank=False, null=False)
     content = models.TextField(blank=False, null=False)
     date = models.DateTimeField(default=timezone.now)
-    initial_date = models.DateField(blank=True, null=True)
-    final_date = models.DateField(blank=True, null=True)
+    initial_date = models.DateTimeField(blank=True, null=True)
+    final_date = models.DateTimeField(blank=True, null=True)
     directed_to = models.JSONField(blank=True, null=True)
     is_public = models.BooleanField(default=False)
     author = models.ForeignKey(

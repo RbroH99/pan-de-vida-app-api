@@ -29,11 +29,17 @@ class AnnouncementAPITests(APITestCase):
             "final_date": "2023-10-10",
             "directed_to": [1, 2],
             "is_public": False,
-            "author": self.user.id
         }
-        response = self.client.post(self.url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        res = self.client.post(self.url, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Announcement.objects.count(), 1)
+        # Test author is the user that created it.
+        author_info = {
+            'id': self.user.id,
+            'name': self.user.name,
+            'email': self.user.email
+        }
+        self.assertEqual(res.data["author"], author_info)
 
     def test_create_announcement_with_insuficient_permission(self):
         """
@@ -95,9 +101,10 @@ class AnnouncementAPITests(APITestCase):
             is_public=False,
             author=self.user
         )
-        response = self.client.get(self.url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        res = self.client.get(self.url, format='json')
+        print("Response:", res.data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
 
     def test_get_announcements_with_role_filter(self):
         user = get_user_model().objects.create_user(

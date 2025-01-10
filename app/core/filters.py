@@ -2,7 +2,6 @@ from django_filters import (
     rest_framework as filters,
     CharFilter,
     NumberFilter,
-    DateFilter,
     DateTimeFilter,
 )
 from .models import Treatment, Medicine, Contact, Announcement
@@ -86,11 +85,19 @@ class SpecificAnnouncementsFilter(filters.Filter):
 
 class AnnouncementFilterSet(filters.FilterSet):
     """Filter Set class for Announcements viewset."""
-    initial_date = DateFilter(
+    initial_date__gte = DateTimeFilter(
         field_name="initial_date",
         label="Start Date",
     )
-    final_date = DateFilter(
+    initial_date__lte = DateTimeFilter(
+        field_name="initial_date",
+        label="End Date",
+    )
+    final_date__gte = DateTimeFilter(
+        field_name='final_date',
+        label="Start Date"
+        )
+    final_date__lte = DateTimeFilter(
         field_name='final_date',
         label="End Date"
         )
@@ -107,8 +114,10 @@ class AnnouncementFilterSet(filters.FilterSet):
     class Meta:
         model = Announcement
         fields = [
-            "initial_date",
-            "final_date",
+            "initial_date__gte",
+            "initial_date__lte",
+            "final_date__gte",
+            "final_date__lte",
             "date__gte",
             "date__lte",
             "author",

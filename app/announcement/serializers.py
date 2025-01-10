@@ -2,6 +2,11 @@ from rest_framework import serializers
 
 from core.models import Announcement
 
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
+
 
 class AnnouncementSerializer(serializers.ModelSerializer):
     directed_to = serializers.ListField(
@@ -35,3 +40,17 @@ class AnnouncementSerializer(serializers.ModelSerializer):
             )
         value = self.context['request'].user
         return value
+
+    def create(self, validated_data):
+        validated_data["author"] = self.context["request"].user
+        return super().create(validated_data)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        author = instance.author
+        representation["author"] = {
+            "id": author.id,
+            "name": author.name,
+            "email": author.email,
+        }
+        return representation
