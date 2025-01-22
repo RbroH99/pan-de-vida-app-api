@@ -102,7 +102,6 @@ class AnnouncementAPITests(APITestCase):
             author=self.user
         )
         res = self.client.get(self.url, format='json')
-        print("Response:", res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
 
@@ -150,3 +149,28 @@ class AnnouncementAPITests(APITestCase):
         self.assertIn("Public Announcement", titles)
         self.assertIn("Role Specific Announcement", titles)
         self.assertNotIn("Other Role Announcement", titles)
+
+    def test_get_announcements_with_search_filter(self):
+        Announcement.objects.create(
+            title="Test Announcement Search",
+            content="This is a test announcement.",
+            initial_date="2023-10-01",
+            final_date="2023-10-10",
+            directed_to=[1, 2],
+            is_public=False,
+            author=self.user
+        )
+        Announcement.objects.create(
+            title="Test Announcement Nothing",
+            content="This is a test announcement.",
+            initial_date="2023-10-01",
+            final_date="2023-10-10",
+            directed_to=[1, 2],
+            is_public=False,
+            author=self.user
+        )
+        res = self.client.get(f"{self.url}?search=search", format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        res = self.client.get(f"{self.url}?search=pope/", format='json')
+        self.assertEqual(len(res.data), 0)

@@ -18,9 +18,8 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     filterset_class = AnnouncementFilterSet
-    search_fields = ["title"]
     ordering_fields = ['date', 'initial_date', 'final_date']
-    ordering_fields = ['-date']
+    ordering = ['-date']
 
     def perform_create(self, serializer):
         if not IsColaboratorMinimun.has_permission(self, self.request, self):
@@ -38,5 +37,15 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(
                 Q(is_public=True) | Q(id__in=specific_ids)
                 )
+
+        # Apply search filter to queryset if needed
+        search = self.request.query_params.get("search", None)
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) | Q(author__name__icontains=search)
+            )
+
+        # Order queryset
+        queryset = queryset.order_by('-date')
 
         return queryset

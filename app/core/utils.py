@@ -47,6 +47,15 @@ role_choices = (
     (5, 'donor'),
 )
 
+role_choices_spa = (
+    (0, 'Administrador'),
+    (1, 'Colaborador'),
+    (2, 'Agente'),
+    (3, 'Pastor'),
+    (4, 'Facilitador'),
+    (5, 'Donante'),
+)
+
 measurement_choices = (
     ('mL', _('Milliliters')),
     ('oz', _('Ounce')),

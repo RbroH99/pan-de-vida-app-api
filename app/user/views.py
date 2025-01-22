@@ -14,6 +14,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth import get_user_model
 from django.http import Http404
 
+from core.utils import role_choices_spa
+
 from user.serializers import (
     UserSerializer,
     PasswordResetRequestSerializer,
@@ -133,3 +135,16 @@ class PasswordResetView(APIView):
             serializer.save()
             return Response({"message": "Password successfully changed."})
         return Response(serializer.errors, status=400)
+
+
+class GetUserRolesView(APIView):
+    """View to get the avaliables user Roles."""
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, format=None):
+        provinces_choices = [
+            {'label': choice[1], 'value': choice[0]}
+            for choice in role_choices_spa
+        ]
+        return Response(provinces_choices, status=status.HTTP_200_OK)

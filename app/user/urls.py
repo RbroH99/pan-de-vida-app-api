@@ -6,7 +6,12 @@ from django.urls import path, include
 from user import views
 
 from rest_framework.routers import DefaultRouter
-from user.views import AdminCreateUserView, ConfirmEmailView, SetPasswordView
+from user.views import (
+    AdminCreateUserView,
+    ConfirmEmailView,
+    SetPasswordView,
+    GetUserRolesView
+)
 
 
 router = DefaultRouter()
@@ -31,4 +36,5 @@ urlpatterns = [
     path('admin-create/', AdminCreateUserView.as_view(), name='create-user'),
     path('confirm-email/', ConfirmEmailView.as_view(), name='confirm-email'),
     path('set-password/', SetPasswordView.as_view(), name='set-password'),
+    path('get-user-roles/', GetUserRolesView.as_view(), name='get-user-roles'),
 ]

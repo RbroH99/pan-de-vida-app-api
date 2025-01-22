@@ -27,11 +27,11 @@ class AnnouncementSerializer(serializers.ModelSerializer):
             'author'
         ]
 
-    def validate_directed_to(self, value):
+    def validate_directed_to(self, values):
         allowed_roles = range(0, 6)
-        if not all(role in allowed_roles for role in value):
+        if not all(role in allowed_roles for role in values):
             raise serializers.ValidationError("One or more roles are invalid.")
-        return
+        return values
 
     def validate_author(self, value):
         if value != self.context['request'].user:

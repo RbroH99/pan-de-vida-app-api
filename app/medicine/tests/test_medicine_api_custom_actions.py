@@ -242,20 +242,22 @@ class PrivateMedicineCustomActionsAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         expected_data = {
-            'Medicine1': [
-                {
-                    'id': 1,
-                    'measurement': Decimal('50.00'),
-                    'measurement_units': 'mg'},
-                {
-                    'id': 2,
-                    'measurement': Decimal('100.00'),
-                    'measurement_units': 'mg'}],
-            'Medicine2': [
-                {
-                    'id': 3,
-                    'measurement': Decimal('200.00'),
-                    'measurement_units': 'ml'}]
+            {'Medicine1': {
+                'Presentation Name': [
+                    {
+                        'id': 1,
+                        'measurement': Decimal('50.00'),
+                        'measurement_units': 'mg'},
+                    {
+                        'id': 2,
+                        'measurement': Decimal('100.00'),
+                        'measurement_units': 'mg'}]}},
+            {'Medicine2':
+                {'Presentation Name': [
+                    {
+                        'id': 3,
+                        'measurement': Decimal('200.00'),
+                        'measurement_units': 'ml'}]}}
         }
 
         self.assertEqual(res.data, expected_data)
