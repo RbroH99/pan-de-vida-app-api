@@ -148,6 +148,11 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
                 name=classification_name
             )
             medicine.classification = classification
+        else:
+            classification, _ = MedClass.objects.get_or_create(
+                name="Desconocida"
+            )
+            medicine.classification = classification
 
         if presentation_data:
             presentation_name = self.handle_model_attr_data(
@@ -156,6 +161,11 @@ class MedicineSerializer(BasicNameOnlyModelSerializer):
             )
             presentation, created = MedicinePresentation.objects.get_or_create(
                 name=presentation_name
+            )
+            medicine.presentation = presentation
+        else:
+            presentation, created = MedicinePresentation.objects.get_or_create(
+                name="Desconocida"
             )
             medicine.presentation = presentation
 
