@@ -4,12 +4,15 @@ Serializers for the user API.
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils.encoding import force_str
+from core.models import Contact
+
+import logging
 
 import jwt
 
@@ -25,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ['email', 'password', 'name', 'role']
+        fields = ['id', 'email', 'password', 'name', 'role']
         extra_kwargs = {'password': {
             'write_only': True,
             'min_length': 8,
@@ -65,6 +68,15 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
 
+    def to_representation(self, instance):
+        representation =  super().to_representation(instance)
+        representation["status"] = instance.is_active
+        try:
+            contact = Contact.objects.get(user=instance)
+            representation["contact"] = {"id":contact.id, "name": f"{contact.name} {contact.lastname}"}
+        finally:
+            return representation
+
 
 # Church Staff user creation -----------------------------------
 class EmailConfirmationMessageSerializer(serializers.Serializer):
@@ -81,7 +93,7 @@ class EmailConfirmationMessageSerializer(serializers.Serializer):
     def send_confirmation_email(self, user):
         token = self.generate_confirmation_token(user)
         confirmation_url = (
-            f"http://localhost:3000/confirm-email/{token}"
+            f"https://breadoflife.onrender.com/reset-password/{token}"
         )
 
         html_message = render_to_string(
@@ -102,32 +114,6 @@ class EmailConfirmationMessageSerializer(serializers.Serializer):
             fail_silently=False
         )
 
-
-class EmailConfirmationSerializer(serializers.Serializer):
-    """Serializer for confirming user email."""
-    token = serializers.CharField()
-
-    def validate(self, data):
-        try:
-            decoded_token = jwt.decode(
-                force_str(data['token']),
-                settings.SECRET_KEY,
-                algorithms=['HS256']
-            )
-            self.user = User.objects.get(id=decoded_token['user_id'])
-        except jwt.ExpiredSignatureError:
-            if self.user:
-                EmailConfirmationMessageSerializer.send_confirmation_email(
-                    self.user
-                )
-            raise serializers.ValidationError("Expired token")
-        except jwt.InvalidTokenError:
-            raise serializers.ValidationError("Invalid token")
-        except User.DoesNotExist:
-            raise NotFound(detail="User not found.")
-
-        return data
-
     def save(self):
         self.user.is_active = True
         self.user.save()
@@ -146,8 +132,14 @@ class SetPasswordSerializer(serializers.Serializer):
                 algorithms=['HS256']
             )
             self.user = User.objects.get(id=decoded_token['user_id'])
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            raise serializers.ValidationError("Invalid or expired token")
+        except jwt.ExpiredSignatureError:
+            if self.user:
+                EmailConfirmationMessageSerializer.send_confirmation_email(
+                    self.user
+                )
+            raise serializers.ValidationError("Expired token", code="EXPIRED")
+        except jwt.InvalidTokenError:
+            raise serializers.ValidationError("Invalid token")
         except User.DoesNotExist:
             raise NotFound(detail="User not found.")
 
@@ -156,25 +148,41 @@ class SetPasswordSerializer(serializers.Serializer):
     def save(self):
         password = self.validated_data['password']
         self.user.set_password(password)
+        self.user.is_active = True
         self.user.save()
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
     """Serializer for the church staff user object."""
+    contact = serializers.IntegerField()
 
     class Meta:
         model = get_user_model()
-        fields = ['email', 'name', 'role']
+        fields = ['email', 'name', 'role', 'contact']
         extra_kwargs = {}
 
     def create(self, validated_data):
         """Create and return a new user without password."""
         role = validated_data.get("role", None)
+        contactId = self.validated_data.get("contact", None)
+        contact = None
+        logging.info(validated_data)
+
+        if contactId:
+            try:
+                contact = Contact.objects.get(id=contactId)
+            except Contact.DoesNotExist:
+                logging.error("Contact does not exist, user will be created without contact associated.")
+
         if role:
-            if role not in [3, 4, 5]:
+            if role==1:
                 raise serializers.ValidationError(
-                    "Role not allowed trough this endpoint!"
-                )
+                        "Role not allowed trough this endpoint!"
+                    )
+            elif role < 2 and self.context["request"].user.role != 0:
+                    raise PermissionDenied(
+                        "Insuficient permission to create users with that role!"
+                    )
             elif role == 5:
                 if self.context["request"].user.role > 1:
                     raise serializers.ValidationError(
@@ -184,6 +192,10 @@ class AdminUserSerializer(serializers.ModelSerializer):
         user = get_user_model().objects.create_user(
             password=None, is_active=False, **validated_data
         )
+
+        if contact is not None:
+            contact.user = user
+            contact.save()
 
         EmailConfirmationMessageSerializer().send_confirmation_email(user)
 

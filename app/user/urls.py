@@ -8,9 +8,9 @@ from user import views
 from rest_framework.routers import DefaultRouter
 from user.views import (
     AdminCreateUserView,
-    ConfirmEmailView,
     SetPasswordView,
-    GetUserRolesView
+    GetUserRolesView,
+    GetAvaliablesView,
 )
 
 
@@ -34,7 +34,7 @@ urlpatterns = [
         name='reset_password'
         ),
     path('admin-create/', AdminCreateUserView.as_view(), name='create-user'),
-    path('confirm-email/', ConfirmEmailView.as_view(), name='confirm-email'),
     path('set-password/', SetPasswordView.as_view(), name='set-password'),
     path('get-user-roles/', GetUserRolesView.as_view(), name='get-user-roles'),
+    path('get-avaliable-contacts/', GetAvaliablesView.as_view(), name='get-avaliable-contacts'),
 ]

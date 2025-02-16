@@ -20,15 +20,17 @@ from user.serializers import (
     UserSerializer,
     PasswordResetRequestSerializer,
     PasswordResetSerializer,
-    EmailConfirmationSerializer,
     SetPasswordSerializer,
     AdminUserSerializer
 )
 
 from core.permissions import (
     IsAdminRole,
-    IsAgentMinimun
+    IsAgentMinimun,
+    IsColaboratorMinimun
     )
+
+from core.models import Contact, Church
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -40,27 +42,14 @@ class CreateUserView(generics.CreateAPIView):
 
 
 class AdminCreateUserView(generics.CreateAPIView):
-    """View to create a new user by an admin, colaborator or agent."""
+    """View to create a new user by an admin or colaborator."""
     queryset = get_user_model().objects.all()
     serializer_class = AdminUserSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAgentMinimun]
+    permission_classes = [permissions.IsAuthenticated, IsColaboratorMinimun]
     http_method_names = ['post']
 
     def perform_create(self, serializer):
         return super().perform_create(serializer)
-
-
-class ConfirmEmailView(APIView):
-    """View to confirm the user's email."""
-
-    def post(self, request):
-        serializer = EmailConfirmationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"message": "Email successfully confirmed."},
-                status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SetPasswordView(generics.GenericAPIView):
@@ -107,6 +96,11 @@ class AdminUserViewset(viewsets.ModelViewSet):
         'destroy': ['delete']
     }
 
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return AdminUserSerializer
+        return super().get_serializer_class()
+
     def get_queryset(self):
         try:
             users = get_user_model().objects.exclude(id=self.request.user.id)
@@ -139,12 +133,39 @@ class PasswordResetView(APIView):
 
 class GetUserRolesView(APIView):
     """View to get the avaliables user Roles."""
+    permission_classes = [permissions.IsAuthenticated, IsAgentMinimun]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, format=None):
+        roles_choices = [
+            {'label': choice[1], 'value': choice[0]}
+            for choice in role_choices_spa
+        ]
+        return Response(roles_choices, status=status.HTTP_200_OK)
+
+
+class GetAvaliablesView(APIView):
+    """View to get the available contacts to associate to a user."""
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
     def get(self, request, format=None):
-        provinces_choices = [
-            {'label': choice[1], 'value': choice[0]}
-            for choice in role_choices_spa
+        church_id = request.query_params.get("churchId", None)
+        if church_id:
+            try:
+                church = Church.objects.get(id=church_id)
+            except Church.DoesNotExist:
+                return Response(
+                    {"detail": f"Church with id:{church_id} not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            contacts = Contact.objects.filter(user__isnull=True, donee__church=church)
+        else:
+            contacts = Contact.objects.filter(user__isnull=True)
+
+        contact_choices = [
+            {'id': contact.id, 'name': f"{contact.name} {contact.lastname}"}
+            for contact in contacts
         ]
-        return Response(provinces_choices, status=status.HTTP_200_OK)
+        return Response(contact_choices, status=status.HTTP_200_OK)
+

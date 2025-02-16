@@ -220,7 +220,7 @@ class Contact(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True, null=True,
-        on_delete=models.CASCADE
+        on_delete=models.SET_NULL
     )
     name = models.CharField(max_length=40, blank=False, null=False)
     lastname = models.CharField(max_length=40, blank=True, null=True)

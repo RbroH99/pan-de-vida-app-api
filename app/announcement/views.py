@@ -33,7 +33,8 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         queryset = Announcement.objects.all()
         user_role = self.request.user.role
         if user_role > 1:
-            specific_ids = [announcement.id for announcement in queryset if user_role in announcement.directed_to] # noqa
+            print(queryset.first().directed_to)
+            specific_ids = [announcement.id for announcement in queryset if user_role in (announcement.directed_to if announcement.directed_to else [])] # noqa
             queryset = queryset.filter(
                 Q(is_public=True) | Q(id__in=specific_ids)
                 )
