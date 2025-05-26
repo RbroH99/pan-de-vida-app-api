@@ -169,7 +169,8 @@ class DispatchSerializer(serializers.ModelSerializer):
         representation["church"] = {
             "id": church.id,
             "name": church.name,
-            "province": str(church.municipality.province) if church.municipality else None # noqa
+            "province": str(church.municipality.province) if church.municipality else None, # noqa
+            "internal_code": church.internal_code
         }
 
         dispatcher = instance.dispatcher

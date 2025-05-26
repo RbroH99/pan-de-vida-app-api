@@ -38,15 +38,23 @@ class BaseNameOnlyModelSerializer(serializers.ModelSerializer):
 
 class MunicipalitySerializer(BaseNameOnlyModelSerializer):
     """Serializer for the municipality model."""
+    code_display = serializers.SerializerMethodField()
     province = serializers.ChoiceField(choices=PROVINCES_CUBA,
                                        default='-')
 
     class Meta(BaseNameOnlyModelSerializer.Meta):
         model = Municipality
-        fields = BaseNameOnlyModelSerializer.Meta.fields + ['province']
+        fields = BaseNameOnlyModelSerializer.Meta.fields + [
+            'province',
+            'code',
+            'code_display'
+        ]
 
     def get_province(self, obj):
         return obj.get_province_display()
+
+    def get_code_display(self, obj):
+        return obj.get_code_display()
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -62,11 +70,15 @@ class MunicipalitySerializer(BaseNameOnlyModelSerializer):
         return representation
 
 
-class DenominationSerializer(BaseNameOnlyModelSerializer):
-    """Serializer for the denomination objects."""
+class DenominationSerializer(serializers.ModelSerializer):
+    code_display = serializers.SerializerMethodField()
 
-    class Meta(BaseNameOnlyModelSerializer.Meta):
+    class Meta:
         model = Denomination
+        fields = ['id', 'name', 'code', 'code_display']
+
+    def get_code_display(self, obj):
+        return obj.get_code_display()
 
 
 class ChurchSerializer(BaseNameOnlyModelSerializer):
@@ -85,6 +97,7 @@ class ChurchSerializer(BaseNameOnlyModelSerializer):
             ['priest',
              'denomination',
              'municipality',
+             'internal_code',
              'inscript']
 
     def user_validation(self, user_info):

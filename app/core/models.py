@@ -5,6 +5,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.db import models
+from django.db.models import Max
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import (
     AbstractBaseUser,
     PermissionsMixin,
@@ -19,6 +21,7 @@ from django_countries.fields import CountryField
 
 from .utils import (
     PROVINCES_CUBA,
+    province_code_mapping,
     measurement_choices,
     gender_choices,
     role_choices
@@ -299,7 +302,16 @@ class Donor(models.Model):
 
 class Donee(models.Model):
     """Donees in the system."""
-    code = models.CharField(max_length=12, unique=True, editable=False)
+    code = models.PositiveSmallIntegerField(
+        unique=True,
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(999)
+        ],
+        help_text="Código único de 3 dígitos (001-999)"
+    )
     contact = models.OneToOneField(Contact,
                                    null=False,
                                    blank=False,
@@ -321,31 +333,25 @@ class Donee(models.Model):
         new_number = current_number + 1
         return '-'.join(parts[:-1] + [str(new_number)])
 
-    def generate_code(self):
-        """Generate unique code for donee in its church."""
-        last_donee = Donee.objects.filter(
-            church=self.church
-        ).order_by('-id').first()
-        if last_donee:
-            try:
-                last_specific_id = str(last_donee.code).split('-')[-1]
-                potential_code = \
-                    f'{self.church.id}-{int(last_specific_id) + 1}'
-            except (ValueError, IndexError):
-                potential_code = f'{self.church.id}-1'
-        else:
-            potential_code = f'{self.church.id}-1'
+    def get_code_display(self):
+        """Formatea el código como 4 dígitos con ceros a la izquierda."""
+        return f"{self.code:04d}" if self.code else "0000"
 
-        while True:
-            if not Donee.objects.filter(code=potential_code).exists():
-                break
-            potential_code = self.increment_number(potential_code)
-
-        return potential_code
 
     def save(self, *args, **kwargs):
-        self.code = self.generate_code()
+        if not self.code:
+            self.code = self._generate_next_code()
         super().save(*args, **kwargs)
+
+    def _generate_next_code(self):
+        """Genera el próximo código disponible secuencialmente (1-999)."""
+        last_code = Denomination.objects.all().aggregate(
+            models.Max('code')
+        )['code__max'] or 0
+        next_code = last_code + 1
+        if next_code > 999:
+            raise ValueError("Se ha alcanzado el límite máximo de códigos (999)")
+        return next_code
 
     def __str__(self) -> str:
         return f'Donee: {self.code}'
@@ -359,28 +365,72 @@ class Municipality(models.Model):
     province = models.CharField(
         max_length=3,
         choices=PROVINCES_CUBA,
-        default='UNK')
+        default='UNK'
+    )
+    code = models.PositiveSmallIntegerField(blank=True, null=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'province'],
-                name='unique_municipality_province')
+                name='unique_municipality_province'
+            )
         ]
 
     def __str__(self) -> str:
         return f'{self.name}, {self.province}'
 
+    def get_code_display(self):
+        """Formatea el código como 3 dígitos con ceros a la izquierda."""
+        return f"{self.code:03d}" if self.code else "000"
+
+    def save(self, *args, **kwargs):
+        # Asignar el código según la provincia antes de guardar
+        if not self.code:
+            self.code = province_code_mapping.get(self.province, 17)
+        super().save(*args, **kwargs)
+
 
 class Denomination(models.Model):
-    """Denomination of the churchs."""
-    name = models.CharField(max_length=60,
-                            unique=True,
-                            blank=False,
-                            null=False)
+    """Denomination of the churches with 3-digit codes."""
+    name = models.CharField(
+        max_length=60,
+        unique=True,
+        blank=False,
+        null=False
+    )
+    code = models.PositiveSmallIntegerField(
+        unique=True,
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(999)
+        ],
+        help_text="Código único de 3 dígitos (001-999)"
+    )
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.get_code_display()}: {self.name}"
+
+    def get_code_display(self):
+        """Formatea el código como 3 dígitos con ceros a la izquierda."""
+        return f"{self.code:03d}" if self.code else "000"
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = self._generate_next_code()
+        super().save(*args, **kwargs)
+
+    def _generate_next_code(self):
+        """Genera el próximo código disponible secuencialmente (1-999)."""
+        last_code = Denomination.objects.all().aggregate(
+            models.Max('code')
+        )['code__max'] or 0
+        next_code = last_code + 1
+        if next_code > 999:
+            raise ValueError("Se ha alcanzado el límite máximo de códigos (999)")
+        return next_code
 
 
 class Church(models.Model):
@@ -412,10 +462,40 @@ class Church(models.Model):
                                      on_delete=models.SET_NULL)
     inscript = models.DateField(default=timezone.now)
 
-    def __str__(self) -> str:
-        denomination_name = self.denomination.name if self.denomination else ""
-        return f'{self.name}, {denomination_name}'
+    internal_code = models.CharField(
+        max_length=15,
+        unique=True,
+        blank=True,
+        null=True,
+        editable=False,
+        help_text="Formato: [CódProvincia]-[CódDenominación]-[Secuencial] (ej: 013-003-002)"
+    )
 
+    def save(self, *args, **kwargs):
+        if not self.internal_code and self.denomination:
+            self.internal_code = self._generate_composite_code()
+        super().save(*args, **kwargs)
+
+    def _generate_composite_code(self):
+        """Genera el código basado en el último código asignado para la denominación."""
+        province_code = f"{self.municipality.code:03d}" if self.municipality else "000"
+        denomination_code = f"{self.denomination.code:03d}"
+
+        # Obtener el último código existente para la denominación
+        last_code = Church.objects.filter(
+            denomination=self.denomination,
+            internal_code__isnull=False,
+        ).order_by('-internal_code').values_list('internal_code', flat=True).first()
+
+        if last_code:
+            # Extraer el último número y suma 1
+            last_sequence = int(last_code.split('-')[-1])
+            next_sequence = last_sequence + 1
+        else:
+            # Primera iglesia de esta denominación en la provincia
+            next_sequence = 1
+
+        return f"{province_code}-{denomination_code}-{next_sequence:03d}"
 # ----------------------------------------------------------------------------
 
 # ARTICLE RELATED MODELS

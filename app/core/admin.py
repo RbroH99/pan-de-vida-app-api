@@ -83,7 +83,6 @@ class UserAdmin(BaseUserAdmin):
 
 
 admin.site.register(models.User, UserAdmin)
-admin.site.register(models.Denomination)
 admin.site.register(models.MedClass)
 admin.site.register(models.MedicinePresentation)
 admin.site.register(models.Medicine)
@@ -102,3 +101,13 @@ admin.site.register(models.Dispatch)
 admin.site.register(models.DispatchItems)
 admin.site.register(models.Item)
 admin.site.register(models.Announcement)
+
+
+@admin.register(models.Denomination)
+class DenominationAdmin(admin.ModelAdmin):
+    list_display = ('get_code_display', 'name')
+    readonly_fields = ('get_code_display',)
+
+    def get_code_display(self, obj):
+        return obj.get_code_display()
+    get_code_display.short_description = 'Código'

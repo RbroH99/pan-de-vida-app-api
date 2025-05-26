@@ -371,7 +371,7 @@ class DonorSerializer(CountryFieldMixin, BaseContactChildrenSerializer):
 
 class DoneeSerializer(BaseContactChildrenSerializer):
     """Serializer for donee objects."""
-    code = serializers.SerializerMethodField()
+    code_display = serializers.SerializerMethodField()
     inscript = serializers.DateField(required=False, format="%Y-%m-%d")
     church = serializers.CharField(source='church.name', read_only=True)
     province = serializers.CharField(source='church.municipality.province',
@@ -380,11 +380,12 @@ class DoneeSerializer(BaseContactChildrenSerializer):
     class Meta(BaseContactChildrenSerializer.Meta):
         model = Donee
         fields = BaseContactChildrenSerializer.Meta.fields + \
-            ['code', 'ci', 'inscript', 'church', 'province']
+            ['code', 'ci', 'inscript', 'church', 'province', 'code_display']
         read_only_fields = ['id', 'code']
 
-    def get_code(self, obj):
-        return obj.code
+    def get_code_display(self, obj):
+        church_code = obj.church.internal_code
+        return f"{church_code}-{obj.get_code_display()}"
 
     def create(self, validated_data):
         """Create a new Donee instance."""
@@ -415,8 +416,8 @@ class DoneeDetailSerializer(DoneeSerializer):
     class Meta(BaseContactChildrenSerializer.Meta):
         model = Donee
         fields = BaseContactChildrenSerializer.Meta.fields + \
-            ['code', 'ci', 'inscript', 'church']
-        read_only_fields = ['id', 'code']
+            ['code', 'ci', 'inscript', 'church', 'code_display']
+        read_only_fields = ['id', 'code', 'code_display']
 
     def get_code(self, obj):
         return obj.code

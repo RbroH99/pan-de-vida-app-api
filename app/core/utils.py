@@ -96,6 +96,27 @@ PROVINCES_CUBA = (
 )
 
 
+province_code_mapping = {
+    'PRI': 1,
+    'ART': 2,
+    'HAB': 3,
+    'MAY': 4,
+    'MTZ': 5,
+    'CFG': 6,
+    'VCL': 7,
+    'SSP': 8,
+    'CAV': 9,
+    'CMG': 10,
+    'LTU': 11,
+    'GRA': 12,
+    'HOL': 13,
+    'SCU': 14,
+    'GTM': 15,
+    'IJV': 16,
+    'UNK': 17,
+}
+
+
 def name_validator(model_ref, name):
     names_list = model_ref.objects.all().values("name")
     if name in names_list:
