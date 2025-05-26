@@ -5,13 +5,19 @@ from django.db import migrations, models
 
 def assign_codes(apps, schema_editor):
     DoneeModel = apps.get_model('core', 'Donee')
-    # Primero limpiamos todos los códigos existentes
-    DoneeModel.objects.all().update(code=None)
-    # Luego asignamos nuevos códigos secuenciales
+    used_codes = set()
     for idx, donee in enumerate(DoneeModel.objects.all().order_by('id'), start=1):
         if idx > 9999:
             raise ValueError("¡Demasiados registros! El sistema solo soporta hasta 9999 denominaciones")
+        # Si el código actual es único, lo mantenemos
+        if donee.code and donee.code not in used_codes:
+            used_codes.add(donee.code)
+            continue
+        # Si no, asignamos un nuevo código
+        while idx in used_codes:
+            idx += 1
         donee.code = idx
+        used_codes.add(idx)
         donee.save(update_fields=['code'])
 
 class Migration(migrations.Migration):
